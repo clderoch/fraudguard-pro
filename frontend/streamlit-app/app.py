@@ -1,653 +1,328 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
-import time
-import io
+from datetime import datetime
+import numpy as np
 
 # Page configuration
 st.set_page_config(
     page_title="FraudGuard Pro",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS
+# Custom CSS for styling
 st.markdown("""
 <style>
     .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
         padding: 2rem;
         border-radius: 10px;
-        color: white;
         margin-bottom: 2rem;
+        text-align: center;
+        color: white;
     }
-    .metric-card {
+    
+    .metric-container {
         background: white;
         padding: 1.5rem;
         border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        border-left: 4px solid #667eea;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #2a5298;
     }
-    .risk-high { 
-        background-color: #fee; 
-        color: #c53030; 
-        padding: 0.25rem 0.5rem; 
-        border-radius: 0.25rem; 
-        font-weight: bold;
+    
+    .upload-section {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        border: 2px dashed #dee2e6;
+        text-align: center;
     }
-    .risk-medium { 
-        background-color: #fef5e7; 
-        color: #dd6b20; 
-        padding: 0.25rem 0.5rem; 
-        border-radius: 0.25rem; 
-        font-weight: bold;
-    }
-    .risk-low { 
-        background-color: #f0fff4; 
-        color: #38a169; 
-        padding: 0.25rem 0.5rem; 
-        border-radius: 0.25rem; 
-        font-weight: bold;
-    }
-    .stButton > button {
+    
+    .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem;
+        border-radius: 10px;
         color: white;
-        border: none;
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        text-align: center;
+        margin-bottom: 1rem;
     }
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0;
     }
+    
+    .metric-label {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin: 0;
+    }
+    
+    .risk-high { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%); }
+    .risk-medium { background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%); }
+    .risk-low { background: linear-gradient(135deg, #48cab2 0%, #4ecdc4 100%); }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state
-if 'transactions' not in st.session_state:
-    st.session_state.transactions = pd.DataFrame({
-        'transaction_id': ['TXN-2024-001', 'TXN-2024-002', 'TXN-2024-003', 'TXN-2024-004', 'TXN-2024-005'],
-        'amount': [2850.00, 1200.00, 450.00, 890.00, 3200.00],
-        'merchant': ['Electronics Store', 'Online Retailer', 'Restaurant', 'Gas Station', 'Luxury Goods'],
-        'date': ['2024-07-10', '2024-07-10', '2024-07-09', '2024-07-09', '2024-07-08'],
-        'risk_score': [87, 65, 25, 45, 92],
-        'status': ['Under Review', 'Monitoring', 'Approved', 'Approved', 'Blocked'],
-        'card_type': ['Visa', 'Mastercard', 'American Express', 'Visa', 'Mastercard'],
-        'location': ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Miami, FL'],
-        'ip_address': ['192.168.1.100', '192.168.1.200', '192.168.1.300', '192.168.1.400', '192.168.1.500'],
-        'device_id': ['DEV-12345', 'DEV-67890', 'DEV-11111', 'DEV-22222', 'DEV-33333']
-    })
+def create_risk_score(row):
+    """Create a risk score based on transaction characteristics"""
+    risk_score = 0
+    
+    # Amount-based risk
+    if row['amount'] > 1000:
+        risk_score += 30
+    elif row['amount'] > 500:
+        risk_score += 15
+    elif row['amount'] < 5:
+        risk_score += 25
+    
+    # Time-based risk (if transaction is between 11 PM and 6 AM)
+    hour = pd.to_datetime(row['transaction_time'], format='%H:%M:%S').hour
+    if hour >= 23 or hour <= 6:
+        risk_score += 20
+    
+    # Category-based risk
+    high_risk_categories = ['ATM', 'Online Retail', 'Electronics']
+    if row['merchant_category'] in high_risk_categories:
+        risk_score += 15
+    
+    # Response code risk
+    if row['response_code'] != '00':
+        risk_score += 35
+    
+    # Known fraud flag
+    if row['is_fraud'] == 1:
+        risk_score = 95  # High risk for known fraud
+    
+    return min(risk_score, 100)  # Cap at 100
 
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = [
-        {
-            "role": "assistant", 
-            "content": "👋 Hi! I'm your FraudGuard Assistant. I can help you analyze transactions, understand risk scores, and provide insights about your fraud prevention. How can I assist you today?"
-        }
-    ]
-
-if 'metrics' not in st.session_state:
-    st.session_state.metrics = {
-        'total_transactions': 1247,
-        'high_risk_count': 23,
-        'chargebacks_prevented': 15,
-        'savings_amount': 3750,
-        'false_positive_rate': 8.2,
-        'accuracy_rate': 94.7
+def analyze_data(df):
+    """Analyze the uploaded data and return key metrics"""
+    
+    # Create risk scores
+    df['risk_score'] = df.apply(create_risk_score, axis=1)
+    
+    # Define risk categories
+    df['risk_category'] = pd.cut(df['risk_score'], 
+                                bins=[0, 30, 70, 100], 
+                                labels=['Low', 'Medium', 'High'])
+    
+    # Calculate metrics
+    total_transactions = len(df)
+    high_risk_count = len(df[df['risk_category'] == 'High'])
+    high_risk_percentage = (high_risk_count / total_transactions) * 100
+    
+    # Transaction volume trends
+    df['transaction_date'] = pd.to_datetime(df['transaction_date'])
+    daily_volume = df.groupby('transaction_date').size().reset_index(name='count')
+    
+    # Risk score distribution
+    risk_distribution = df['risk_category'].value_counts()
+    
+    return {
+        'total_transactions': total_transactions,
+        'high_risk_count': high_risk_count,
+        'high_risk_percentage': high_risk_percentage,
+        'daily_volume': daily_volume,
+        'risk_distribution': risk_distribution,
+        'df_with_risk': df
     }
 
-# Helper functions
-def get_risk_category(score):
-    if score >= 70:
-        return "🔴 High Risk", "risk-high"
-    elif score >= 40:
-        return "🟡 Medium Risk", "risk-medium"
-    else:
-        return "🟢 Low Risk", "risk-low"
-
-def format_currency(amount):
-    return f"${amount:,.2f}"
-
-def get_risk_factors_explanation(risk_score):
-    if risk_score >= 85:
-        return """• **Very High Amount:** Transaction significantly above customer's typical spending pattern
-• **New Device:** First transaction from this device fingerprint
-• **Suspicious Location:** Transaction from high-risk geographic region
-• **Velocity Alert:** Multiple transactions in short time period
-• **IP Risk:** Transaction from known proxy/VPN service"""
-    elif risk_score >= 70:
-        return """• **High Amount:** Transaction above average for this merchant category
-• **Geographic Anomaly:** Transaction from unusual location for this customer
-• **Time Pattern:** Transaction outside normal business hours
-• **Device Risk:** Inconsistent device characteristics"""
-    elif risk_score >= 40:
-        return """• **Moderate Amount:** Slightly elevated transaction amount
-• **New Location:** Transaction from new but not high-risk location
-• **Velocity Check:** Moderate transaction frequency"""
-    else:
-        return """• **Normal Pattern:** Transaction consistent with customer history
-• **Known Device:** Transaction from recognized device
-• **Standard Location:** Transaction from customer's typical geographic area
-• **Appropriate Amount:** Transaction amount within normal range"""
-
-def get_action_recommendations(risk_score):
-    if risk_score >= 85:
-        return """• **IMMEDIATE ACTION REQUIRED:** Contact customer within 1 hour
-• **Verify Identity:** Request additional authentication
-• **Consider Blocking:** If unable to verify quickly
-• **Monitor Closely:** Watch for additional suspicious activity"""
-    elif risk_score >= 70:
-        return """• **Review Within 24 Hours:** Analyze transaction details
-• **Customer Contact:** Consider calling customer for verification
-• **Enhanced Monitoring:** Flag account for additional scrutiny
-• **Documentation:** Record findings for future reference"""
-    elif risk_score >= 40:
-        return """• **Monitor Transaction:** Keep under standard surveillance
-• **Automated Checks:** Let system continue monitoring
-• **No Immediate Action:** But review if pattern emerges"""
-    else:
-        return """• **Approve Transaction:** Low risk, normal processing
-• **Standard Monitoring:** Continue routine surveillance
-• **Positive Signal:** Use to improve customer profile"""
-
-def generate_ai_response(user_message):
-    message = user_message.lower()
+def create_volume_trend_chart(daily_volume):
+    """Create transaction volume trend chart"""
+    fig = px.line(daily_volume, 
+                  x='transaction_date', 
+                  y='count',
+                  title='Transaction Volume Trends',
+                  color_discrete_sequence=['#2a5298'])
     
-    if 'risk' in message or 'score' in message:
-        return """🎯 **Risk Analysis Insights:**
-
-Based on your current data, you have 23 high-risk transactions (score 70+) that need immediate review. Here's what I'm seeing:
-
-**Top Risk Factors:**
-• High transaction amounts (>$2,000) - 45% of flagged transactions
-• New device fingerprints - 32% of flagged transactions  
-• Unusual geographic patterns - 28% of flagged transactions
-• Velocity anomalies - 23% of flagged transactions
-
-**Recommendations:**
-• Review transactions with scores above 85 within 2 hours
-• Set up automated blocking for scores above 95
-• Consider additional verification for amounts over $2,500
-
-Would you like me to analyze a specific transaction or show detailed risk factor breakdown?"""
-    
-    elif 'chargeback' in message or 'dispute' in message:
-        return """💳 **Chargeback Prevention Summary:**
-
-Excellent news! Your fraud prevention is performing exceptionally well:
-
-**This Month's Performance:**
-• **15 chargebacks prevented** - saving you $3,750 in fees
-• **94.7% accuracy rate** in fraud detection
-• **8.2% false positive rate** - industry leading
-• **Average response time:** 2.3 minutes for high-risk alerts
-
-**Financial Impact:**
-• Direct savings: $3,750 (chargeback fees avoided)
-• Indirect savings: ~$11,250 (lost merchandise + processing costs)
-• **Total monthly impact: $15,000 saved**
-
-I recommend reviewing transactions with scores above 75 within 24 hours for optimal prevention rates."""
-    
-    elif 'trend' in message or 'pattern' in message:
-        return """📊 **Fraud Pattern Analysis:**
-
-I've identified several important trends in your recent transaction data:
-
-**Emerging Patterns:**
-• **45% increase** in card-not-present fraud attempts (last 30 days)
-• **Peak risk hours:** 2-4 AM and 11 PM-1 AM EST
-• **Geographic hotspots:** 3 new high-risk IP ranges detected
-• **Device patterns:** 67% of fraud attempts from mobile devices
-
-**Positive Indicators:**
-• Overall fraud rate decreased 12% this month
-• Customer education reducing false disputes
-• Faster merchant response times improving outcomes"""
-    
-    elif 'save' in message or 'money' in message or 'roi' in message:
-        return """💰 **ROI & Cost Savings Analysis:**
-
-Your FraudGuard Pro investment is delivering exceptional returns:
-
-**Monthly Financial Impact:**
-• **Monthly subscription:** $299 (Professional Plan)
-• **Chargeback fees saved:** $3,750
-• **Lost merchandise prevented:** $8,200
-• **Processing cost savings:** $1,150
-• **Net monthly savings:** $12,801
-
-**Annual Projections:**
-• **Projected annual savings:** $153,612
-• **ROI:** 4,184% return on investment
-• **Payback period:** 5.6 days"""
-    
-    else:
-        return f"""🤖 I understand you're asking about "{user_message}". 
-
-Based on your current fraud detection data, I can provide insights about:
-• Risk scores and transaction analysis
-• Chargeback prevention strategies  
-• Fraud pattern identification
-• ROI and savings calculations
-
-What specific aspect would you like to explore?"""
-
-# Header
-st.markdown("""
-<div class="main-header">
-    <h1>🛡️ FraudGuard Pro</h1>
-    <p>AI-powered fraud detection for small and medium businesses</p>
-</div>
-""", unsafe_allow_html=True)
-
-# Sidebar
-with st.sidebar:
-    st.title("🧭 Navigation")
-    page = st.selectbox(
-        "Choose a page", 
-        ["📊 Dashboard", "📤 Upload Transactions", "🔍 Transaction Analysis", "🤖 AI Assistant", "⚙️ Settings"]
+    fig.update_layout(
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        title_font_size=20,
+        title_font_color='#2a5298',
+        xaxis_title="Date",
+        yaxis_title="Number of Transactions"
     )
     
-    st.markdown("---")
-    st.subheader("📈 Quick Stats")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Total Transactions", "1,247", "+12.3%")
-        st.metric("Monthly Savings", "$3,750", "+32.1%")
-    with col2:
-        st.metric("High Risk Flagged", "23", "-8.1%")
-        st.metric("Accuracy Rate", "94.7%", "+2.1%")
-    
-    st.markdown("---")
-    st.subheader("🟢 System Status")
-    st.success("All systems operational")
-    st.info("Last updated: " + datetime.now().strftime("%H:%M:%S"))
+    return fig
 
-# Main content based on page selection
-if page == "📊 Dashboard":
-    st.title("📊 Dashboard Overview")
+def create_risk_distribution_chart(risk_distribution):
+    """Create risk score distribution chart"""
+    colors = ['#48cab2', '#feca57', '#ff6b6b']
     
-    # Key metrics row
-    col1, col2, col3, col4 = st.columns(4)
+    fig = px.pie(values=risk_distribution.values,
+                 names=risk_distribution.index,
+                 title='Risk Score Distribution',
+                 color_discrete_sequence=colors)
     
-    with col1:
-        st.metric(
-            label="💳 Total Transactions",
-            value=f"{st.session_state.metrics['total_transactions']:,}",
-            delta="12.3%"
-        )
-    
-    with col2:
-        st.metric(
-            label="⚠️ High Risk Flagged",
-            value=str(st.session_state.metrics['high_risk_count']),
-            delta="-8.1%"
-        )
-    
-    with col3:
-        st.metric(
-            label="🛡️ Chargebacks Prevented",
-            value=str(st.session_state.metrics['chargebacks_prevented']),
-            delta="45.2%"
-        )
-    
-    with col4:
-        st.metric(
-            label="💰 Monthly Savings",
-            value=format_currency(st.session_state.metrics['savings_amount']),
-            delta="32.1%"
-        )
-    
-    st.markdown("---")
-    
-    # Charts section
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("🎯 Risk Score Distribution")
-        risk_data = pd.DataFrame({
-            'Risk Level': ['Low Risk (0-30)', 'Medium Risk (31-70)', 'High Risk (71-100)'],
-            'Count': [820, 204, 23]
-        })
-        
-        fig = px.pie(
-            risk_data, 
-            values='Count', 
-            names='Risk Level',
-            color_discrete_sequence=['#48bb78', '#ed8936', '#f56565'],
-            title="Distribution of Transaction Risk Levels"
-        )
-        fig.update_layout(showlegend=True, height=400)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        st.subheader("📈 Transaction Volume Trends")
-        trend_data = pd.DataFrame({
-            'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-            'Total Transactions': [850, 920, 1100, 1050, 1200, 1180, 1247],
-            'High Risk Flagged': [45, 38, 52, 41, 35, 28, 23]
-        })
-        
-        fig = px.line(
-            trend_data, 
-            x='Month', 
-            y=['Total Transactions', 'High Risk Flagged'],
-            title="7-Month Transaction Trends",
-            color_discrete_sequence=['#667eea', '#f56565']
-        )
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-    
-    # Recent transactions table
-    st.markdown("---")
-    st.subheader("🚨 Recent High-Risk Transactions")
-    
-    high_risk_transactions = st.session_state.transactions[
-        st.session_state.transactions['risk_score'] >= 60
-    ].copy()
-    
-    high_risk_transactions['risk_level'] = high_risk_transactions['risk_score'].apply(
-        lambda x: get_risk_category(x)[0]
+    fig.update_layout(
+        title_font_size=20,
+        title_font_color='#2a5298',
+        paper_bgcolor='white'
     )
     
-    high_risk_transactions['formatted_amount'] = high_risk_transactions['amount'].apply(format_currency)
-    
-    st.dataframe(
-        high_risk_transactions[['transaction_id', 'formatted_amount', 'merchant', 'date', 'risk_score', 'risk_level', 'status']].rename(columns={
-            'transaction_id': 'Transaction ID',
-            'formatted_amount': 'Amount',
-            'merchant': 'Merchant',
-            'date': 'Date',
-            'risk_score': 'Risk Score',
-            'risk_level': 'Risk Level',
-            'status': 'Status'
-        }),
-        use_container_width=True,
-        height=300
-    )
+    return fig
 
-elif page == "📤 Upload Transactions":
-    st.title("📤 Upload Transaction Data")
+# Main app
+def main():
+    # Header
+    st.markdown("""
+    <div class="main-header">
+        <h1>🛡️ FraudGuard Pro</h1>
+        <p>Advanced Credit Card Fraud Detection & Analysis Dashboard</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    col1, col2 = st.columns([2, 1])
+    # File upload section
+    st.markdown("""
+    <div class="upload-section">
+        <h3>📁 Upload Transaction Data</h3>
+        <p>Upload your CSV file containing credit card transaction data for analysis</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    with col1:
-        st.subheader("📁 File Upload")
-        uploaded_file = st.file_uploader(
-            "Choose a CSV or Excel file",
-            type=['csv', 'xlsx', 'xls'],
-            help="Upload your transaction data for fraud analysis"
-        )
-        
-        if uploaded_file is not None:
-            st.success("✅ File uploaded successfully!")
+    uploaded_file = st.file_uploader(
+        "Choose a CSV file",
+        type="csv",
+        help="Upload a CSV file with transaction data including columns: transaction_id, amount, merchant_category, transaction_date, transaction_time, response_code, is_fraud"
+    )
+    
+    if uploaded_file is not None:
+        try:
+            # Load data
+            df = pd.read_csv(uploaded_file)
             
-            with st.spinner('🔄 Processing transactions...'):
-                time.sleep(2)
+            # Validate required columns
+            required_columns = ['transaction_id', 'amount', 'merchant_category', 
+                              'transaction_date', 'transaction_time', 'response_code', 'is_fraud']
+            
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                st.error(f"Missing required columns: {', '.join(missing_columns)}")
+                st.info("Please ensure your CSV file contains all required columns.")
+                return
+            
+            # Analyze data
+            analysis_results = analyze_data(df)
+            
+            st.success(f"✅ Successfully loaded {len(df)} transactions!")
+            
+            # Display key metrics
+            st.markdown("## 📊 Key Metrics")
+            
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.markdown(f"""
+                <div class="metric-card">
+                    <p class="metric-value">{analysis_results['total_transactions']:,}</p>
+                    <p class="metric-label">Total Transactions</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(f"""
+                <div class="metric-card risk-high">
+                    <p class="metric-value">{analysis_results['high_risk_count']:,}</p>
+                    <p class="metric-label">High Risk Flagged</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown(f"""
+                <div class="metric-card risk-medium">
+                    <p class="metric-value">{analysis_results['high_risk_percentage']:.1f}%</p>
+                    <p class="metric-label">High Risk Rate</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col4:
+                avg_amount = df['amount'].mean()
+                st.markdown(f"""
+                <div class="metric-card risk-low">
+                    <p class="metric-value">${avg_amount:,.2f}</p>
+                    <p class="metric-label">Average Transaction</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # Charts section
+            st.markdown("## 📈 Analytics Dashboard")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Transaction volume trends
+                volume_chart = create_volume_trend_chart(analysis_results['daily_volume'])
+                st.plotly_chart(volume_chart, use_container_width=True)
+            
+            with col2:
+                # Risk distribution
+                risk_chart = create_risk_distribution_chart(analysis_results['risk_distribution'])
+                st.plotly_chart(risk_chart, use_container_width=True)
+            
+            # Additional insights
+            st.markdown("## 🔍 Additional Insights")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Top risk merchants
+                st.markdown("### 🏪 High-Risk Merchant Categories")
+                risk_by_category = df.groupby('merchant_category')['risk_score'].mean().sort_values(ascending=False)
+                top_risk_categories = risk_by_category.head(5)
                 
-                try:
-                    if uploaded_file.name.endswith('.csv'):
-                        df = pd.read_csv(uploaded_file)
-                    else:
-                        df = pd.read_excel(uploaded_file)
-                    
-                    st.success(f"✅ Successfully loaded {len(df):,} transactions")
-                    
-                    st.subheader("👀 Data Preview")
-                    st.dataframe(df.head(10), use_container_width=True)
-                    
-                    if st.button("🔍 Run Fraud Analysis", type="primary"):
-                        with st.spinner('🧠 Analyzing for fraud patterns...'):
-                            time.sleep(3)
-                            
-                            df['risk_score'] = np.random.randint(0, 100, len(df))
-                            df['risk_level'] = df['risk_score'].apply(lambda x: get_risk_category(x)[0])
-                            
-                            high_risk_count = len(df[df['risk_score'] >= 70])
-                            
-                            st.success("🎯 Analysis complete!")
-                            
-                            col1, col2, col3 = st.columns(3)
-                            with col1:
-                                st.metric("📊 Total Analyzed", len(df))
-                            with col2:
-                                st.metric("🔴 High Risk Found", high_risk_count)
-                            with col3:
-                                st.metric("💰 Estimated Savings", f"${high_risk_count * 250:,}")
-                
-                except Exception as e:
-                    st.error(f"❌ Error processing file: {str(e)}")
-    
-    with col2:
-        st.subheader("📋 Upload Guidelines")
-        st.info("""
-        **Required Columns:**
-        - amount: Transaction amount
-        - merchant: Merchant name  
-        - date: Transaction date
-        """)
-
-elif page == "🔍 Transaction Analysis":
-    st.title("🔍 Detailed Transaction Analysis")
-    
-    selected_transaction_id = st.selectbox(
-        "🔍 Select a transaction to analyze:",
-        options=st.session_state.transactions['transaction_id'].tolist()
-    )
-    
-    if selected_transaction_id:
-        transaction = st.session_state.transactions[
-            st.session_state.transactions['transaction_id'] == selected_transaction_id
-        ].iloc[0]
-        
-        st.markdown("---")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("📋 Transaction Details")
-            st.info(f"""
-            **Transaction ID:** {transaction['transaction_id']}  
-            **Amount:** {format_currency(transaction['amount'])}  
-            **Merchant:** {transaction['merchant']}  
-            **Date:** {transaction['date']}  
-            **Status:** {transaction['status']}  
-            **Card Type:** {transaction['card_type']}  
-            **Location:** {transaction['location']}
-            """)
-        
-        with col2:
-            st.subheader("🎯 Risk Assessment")
+                for category, score in top_risk_categories.items():
+                    st.write(f"**{category}**: {score:.1f} avg risk score")
             
-            risk_score = transaction['risk_score']
-            risk_level, risk_class = get_risk_category(risk_score)
+            with col2:
+                # Risk summary
+                st.markdown("### ⚠️ Risk Summary")
+                risk_counts = analysis_results['risk_distribution']
+                st.write(f"🟢 **Low Risk**: {risk_counts.get('Low', 0):,} transactions")
+                st.write(f"🟡 **Medium Risk**: {risk_counts.get('Medium', 0):,} transactions")
+                st.write(f"🔴 **High Risk**: {risk_counts.get('High', 0):,} transactions")
             
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number",
-                value = risk_score,
-                domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "Risk Score"},
-                gauge = {
-                    'axis': {'range': [None, 100]},
-                    'bar': {'color': "darkblue"},
-                    'steps': [
-                        {'range': [0, 30], 'color': "lightgreen"},
-                        {'range': [30, 70], 'color': "yellow"},
-                        {'range': [70, 100], 'color': "red"}
-                    ]
-                }
-            ))
+            # Show sample high-risk transactions
+            st.markdown("## 🚨 Sample High-Risk Transactions")
+            high_risk_sample = analysis_results['df_with_risk'][
+                analysis_results['df_with_risk']['risk_category'] == 'High'
+            ].head(10)
             
-            fig.update_layout(height=300)
-            st.plotly_chart(fig, use_container_width=True)
-            st.markdown(f"**Risk Level:** {risk_level}")
-        
-        st.markdown("---")
-        st.subheader("⚠️ Risk Factors Analysis")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("**Identified Risk Factors:**")
-            st.markdown(get_risk_factors_explanation(risk_score))
-        
-        with col2:
-            st.markdown("**Recommended Actions:**")
-            st.markdown(get_action_recommendations(risk_score))
-        
-        st.markdown("---")
-        st.subheader("🎬 Take Action")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            if st.button("✅ Approve", type="primary"):
-                st.success("✅ Transaction approved!")
-        
-        with col2:
-            if st.button("⚠️ Flag for Review"):
-                st.warning("⚠️ Transaction flagged!")
-        
-        with col3:
-            if st.button("🚫 Block"):
-                st.error("🚫 Transaction blocked!")
-        
-        with col4:
-            if st.button("📞 Contact Customer"):
-                st.info("📞 Customer contact initiated!")
-
-elif page == "🤖 AI Assistant":
-    st.title("🤖 AI Fraud Detection Assistant")
-    
-    st.subheader("💬 Chat with your Fraud Detection Assistant")
-    
-    # Display chat history
-    for message in st.session_state.chat_history:
-        if message["role"] == "user":
-            st.chat_message("user").write(message["content"])
-        else:
-            st.chat_message("assistant").markdown(message["content"])
-    
-    # Chat input
-    if prompt := st.chat_input("Ask me about fraud patterns, risk scores, or analytics..."):
-        st.session_state.chat_history.append({"role": "user", "content": prompt})
-        st.chat_message("user").write(prompt)
-        
-        with st.chat_message("assistant"):
-            with st.spinner("🤔 Thinking..."):
-                time.sleep(1)
-                response = generate_ai_response(prompt)
-                st.markdown(response)
-        
-        st.session_state.chat_history.append({"role": "assistant", "content": response})
-    
-    # Quick action buttons
-    st.markdown("---")
-    st.subheader("🚀 Quick Actions")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("📊 Show Risk Analysis", use_container_width=True):
-            analysis_prompt = "Show me risk analysis and patterns"
-            st.session_state.chat_history.append({"role": "user", "content": analysis_prompt})
-            response = generate_ai_response(analysis_prompt)
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-            st.rerun()
-    
-    with col2:
-        if st.button("💰 Calculate ROI", use_container_width=True):
-            roi_prompt = "What's my ROI and cost savings?"
-            st.session_state.chat_history.append({"role": "user", "content": roi_prompt})
-            response = generate_ai_response(roi_prompt)
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-            st.rerun()
-    
-    with col3:
-        if st.button("📈 Fraud Trends", use_container_width=True):
-            trends_prompt = "Show me fraud trends and patterns"
-            st.session_state.chat_history.append({"role": "user", "content": trends_prompt})
-            response = generate_ai_response(trends_prompt)
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-            st.rerun()
-
-elif page == "⚙️ Settings":
-    st.title("⚙️ System Settings & Configuration")
-    
-    tab1, tab2, tab3 = st.tabs(["🎯 Risk Thresholds", "🔔 Notifications", "📊 Reporting"])
-    
-    with tab1:
-        st.subheader("🎯 Risk Score Thresholds")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            high_risk_threshold = st.slider("High Risk Threshold", 60, 90, 70)
-            medium_risk_threshold = st.slider("Medium Risk Threshold", 30, 60, 40)
-            auto_block_threshold = st.selectbox(
-                "Auto-block transactions above:",
-                ["Disabled", "Score 90+", "Score 95+"],
-                index=1
-            )
-        
-        with col2:
-            current_high = len(st.session_state.transactions[st.session_state.transactions['risk_score'] >= high_risk_threshold])
-            st.metric("High Risk Transactions", current_high)
-            
-            if high_risk_threshold < 70:
-                st.warning("⚠️ Lower threshold will increase alerts")
+            if not high_risk_sample.empty:
+                display_columns = ['transaction_id', 'amount', 'merchant_category', 
+                                 'transaction_date', 'risk_score', 'is_fraud']
+                st.dataframe(high_risk_sample[display_columns], use_container_width=True)
             else:
-                st.success("✅ Balanced threshold setting")
+                st.info("No high-risk transactions found in the current dataset.")
+                
+        except Exception as e:
+            st.error(f"Error processing file: {str(e)}")
+            st.info("Please check your file format and ensure it contains the required columns.")
     
-    with tab2:
-        st.subheader("🔔 Notification Settings")
+    else:
+        # Show sample data format
+        st.markdown("## 📋 Sample Data Format")
+        st.info("Upload a CSV file with the following structure:")
         
-        col1, col2 = st.columns(2)
+        sample_data = {
+            'transaction_id': ['TXN_00000001', 'TXN_00000002', 'TXN_00000003'],
+            'amount': [45.67, 1250.00, 2.50],
+            'merchant_category': ['Grocery', 'Electronics', 'ATM'],
+            'transaction_date': ['2024-01-15', '2024-01-15', '2024-01-16'],
+            'transaction_time': ['14:30:00', '23:45:00', '02:15:00'],
+            'response_code': ['00', '00', '05'],
+            'is_fraud': [0, 1, 0]
+        }
         
-        with col1:
-            email_alerts = st.checkbox("📧 Email Alerts", value=True)
-            if email_alerts:
-                email_address = st.text_input("Email Address", value="admin@company.com")
-            
-            sms_alerts = st.checkbox("📱 SMS Alerts", value=True)
-            if sms_alerts:
-                phone_number = st.text_input("Phone Number", value="+1-555-0123")
-        
-        with col2:
-            real_time_alerts = st.checkbox("⚡ Real-time Alerts", value=True)
-            daily_summary = st.checkbox("📅 Daily Summary Report", value=True)
-            business_hours_only = st.checkbox("🕒 Business Hours Only", value=False)
-    
-    with tab3:
-        st.subheader("📊 Reporting Configuration")
-        
-        auto_reports = st.checkbox("📅 Automatic Report Generation", value=True)
-        
-        if auto_reports:
-            report_frequency = st.selectbox("Report Frequency:", ["Daily", "Weekly", "Monthly"], index=1)
-            include_charts = st.checkbox("📈 Include Charts in Reports", value=True)
-    
-    st.markdown("---")
-    if st.button("💾 Save All Settings", type="primary"):
-        st.success("✅ Settings saved successfully!")
-        st.balloons()
+        sample_df = pd.DataFrame(sample_data)
+        st.dataframe(sample_df, use_container_width=True)
 
-# Footer
-st.markdown("---")
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.caption("🛡️ FraudGuard Pro v1.0.0")
-
-with col2:
-    st.caption(f"🕒 Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
-with col3:
-    st.caption("📊 System Status: ✅ Operational")
+if __name__ == "__main__":
+    main()
