@@ -2,4 +2,4 @@ I'm working on FraudGuard Pro, a fraud detection platform for SMBs. Here's my cu
 [paste relevant files]
 
 I need help with: [specific request]
-Repository: github.com/username/fraudguard-pro
+Repository: [https://github.com/clderoch/fraudguard-pro]
