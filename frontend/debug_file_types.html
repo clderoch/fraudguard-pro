@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Type Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .debug-info { background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0; }
+        .file-input { margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 File Type Debug Tool</h1>
+    <p>This tool helps debug what MIME types your browser reports for CSV files.</p>
+    
+    <div class="file-input">
+        <label for="fileInput">Select any CSV file:</label>
+        <input type="file" id="fileInput" accept=".csv">
+    </div>
+    
+    <div id="debugInfo" class="debug-info" style="display: none;">
+        <h3>File Information:</h3>
+        <div id="fileDetails"></div>
+    </div>
+    
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const debugDiv = document.getElementById('debugInfo');
+            const detailsDiv = document.getElementById('fileDetails');
+            
+            if (file) {
+                debugDiv.style.display = 'block';
+                detailsDiv.innerHTML = `
+                    <p><strong>File Name:</strong> ${file.name}</p>
+                    <p><strong>File Size:</strong> ${file.size} bytes</p>
+                    <p><strong>MIME Type:</strong> "${file.type}" ${file.type === '' ? '(empty)' : ''}</p>
+                    <p><strong>Last Modified:</strong> ${new Date(file.lastModified).toLocaleString()}</p>
+                    <p><strong>File Extension:</strong> ${file.name.substring(file.name.lastIndexOf('.'))}</p>
+                    
+                    <h4>Validation Results:</h4>
+                    <p><strong>Extension Check:</strong> ${file.name.toLowerCase().endsWith('.csv') ? '✅ Valid' : '❌ Invalid'}</p>
+                    <p><strong>MIME Type Check (strict):</strong> ${file.type === 'text/csv' ? '✅ Valid' : '❌ Invalid'}</p>
+                    <p><strong>MIME Type Check (flexible):</strong> ${
+                        ['text/csv', 'application/csv', 'text/comma-separated-values', 'application/excel', 'application/vnd.ms-excel', 'text/plain', ''].includes(file.type) ? '✅ Valid' : '❌ Invalid'
+                    }</p>
+                    
+                    <h4>Would Pass New Validation:</h4>
+                    <p>${
+                        file.name.toLowerCase().endsWith('.csv') && 
+                        (['text/csv', 'application/csv', 'text/comma-separated-values', 'application/excel', 'application/vnd.ms-excel', 'text/plain', ''].includes(file.type))
+                        ? '✅ YES - File would be accepted' 
+                        : '❌ NO - File would be rejected'
+                    }</p>
+                `;
+            } else {
+                debugDiv.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

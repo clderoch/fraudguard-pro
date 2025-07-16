@@ -181,6 +181,17 @@
             padding: 30px;
         }
 
+        /* Ensure equal height cards in rows */
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .row > [class*="col-"] {
+            display: flex;
+            flex-direction: column;
+        }
+
         .stat-card {
             background: var(--white);
             border-radius: 12px;
@@ -189,6 +200,10 @@
             border: 1px solid var(--border-color);
             transition: all 0.3s ease;
             height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .stat-card:hover {
@@ -244,7 +259,23 @@
             font-size: 11px;
             padding: 4px 8px;
             border-radius: 20px;
-            margin-top: 10px;
+            margin-top: auto;
+            margin-bottom: 0;
+            align-self: flex-start;
+        }
+
+        /* Card content structure */
+        .stat-card-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .stat-card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         /* Chart Cards */
@@ -255,12 +286,37 @@
             box-shadow: 0 3px 20px rgba(0, 0, 0, 0.08);
             border: 1px solid var(--border-color);
             margin-bottom: 25px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .chart-card h5 {
             font-weight: 600;
             margin-bottom: 20px;
             color: var(--dark-color);
+            flex-shrink: 0;
+        }
+
+        .chart-card > div[id*="Chart"] {
+            flex: 1;
+            min-height: 300px;
+        }
+
+        /* ApexCharts responsive improvements */
+        .apexcharts-xaxis-texts-g text {
+            font-size: 12px !important;
+        }
+
+        .apexcharts-xaxis-label {
+            font-size: 11px !important;
+        }
+
+        /* For large datasets with many date points */
+        @media (max-width: 768px) {
+            .apexcharts-xaxis-texts-g text {
+                font-size: 10px !important;
+            }
         }
 
         /* Transaction Table */
@@ -410,6 +466,157 @@
             background-color: var(--light-color);
             color: var(--dark-color);
         }
+
+        /* Analysis Results Styling */
+        .analysis-tab {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .risk-factor-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .risk-factor-item:last-child {
+            border-bottom: none;
+        }
+
+        .recommendation-item {
+            padding: 8px 12px;
+            background: var(--light-color);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary-color);
+            font-size: 14px;
+        }
+
+        .recommendation-item i {
+            margin-right: 8px;
+            width: 16px;
+        }
+
+        /* Enhanced transaction table */
+        .btn-group .btn {
+            border-radius: 4px !important;
+            margin-right: 2px;
+        }
+
+        .btn-group .btn:last-child {
+            margin-right: 0;
+        }
+
+        /* Loading states */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Enhanced progress bars */
+        .progress {
+            border-radius: 10px;
+            background-color: var(--border-color);
+        }
+
+        .progress-bar {
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+
+        /* Alert improvements */
+        .alert-container {
+            max-width: 400px;
+        }
+
+        .alert {
+            box-shadow: var(--shadow-lg);
+            border: none;
+            border-radius: var(--radius-lg);
+        }
+
+        /* Modal improvements */
+        .modal-content {
+            border-radius: var(--radius-xl);
+            border: none;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        /* Button hover effects */
+        .btn:hover {
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Enhanced tooltips */
+        [title] {
+            position: relative;
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 992px) {
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn-group .btn {
+                margin-bottom: 2px;
+                margin-right: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+            
+            .stat-card, .chart-card, .transaction-table {
+                padding: 15px;
+            }
+            
+            /* Ensure cards maintain equal height on mobile */
+            .row > [class*="col-"] {
+                margin-bottom: 15px;
+            }
+            
+            .stat-card {
+                min-height: 140px;
+            }
+            
+            .table-responsive {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -465,42 +672,66 @@
             <div class="row mb-4">
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="stat-card primary">
-                        <div class="card-icon">
-                            <i class="fas fa-credit-card"></i>
+                        <div class="stat-card-content">
+                            <div class="card-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="stat-card-body">
+                                <div>
+                                    <h3 data-stat="total">12,847</h3>
+                                    <p>Total Transactions</p>
+                                </div>
+                                <span class="badge bg-success" data-badge="total">100% processed successfully</span>
+                            </div>
                         </div>
-                        <h3>12,847</h3>
-                        <p>Total Transactions</p>
-                        <span class="badge bg-success">+12% from last month</span>
                     </div>
                 </div>
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="stat-card danger">
-                        <div class="card-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
+                        <div class="stat-card-content">
+                            <div class="card-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-card-body">
+                                <div>
+                                    <h3 data-stat="attention">156</h3>
+                                    <p>Need Attention</p>
+                                </div>
+                                <span class="badge bg-danger" data-badge="attention">0% of total transactions</span>
+                            </div>
                         </div>
-                        <h3>156</h3>
-                        <p>Flagged Transactions</p>
-                        <span class="badge bg-danger">+3% from last month</span>
                     </div>
                 </div>
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="stat-card success">
-                        <div class="card-icon">
-                            <i class="fas fa-shield-alt"></i>
+                        <div class="stat-card-content">
+                            <div class="card-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="stat-card-body">
+                                <div>
+                                    <h3 data-stat="safe">12,691</h3>
+                                    <p>Safe Payments</p>
+                                </div>
+                                <span class="badge bg-success" data-badge="safe">0% of total transactions</span>
+                            </div>
                         </div>
-                        <h3>98.7%</h3>
-                        <p>Detection Accuracy</p>
-                        <span class="badge bg-success">+0.2% from last month</span>
                     </div>
                 </div>
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="stat-card warning">
-                        <div class="card-icon">
-                            <i class="fas fa-clock"></i>
+                        <div class="stat-card-content">
+                            <div class="card-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-card-body">
+                                <div>
+                                    <h3 data-stat="risk">$0.00</h3>
+                                    <p>Money at Risk</p>
+                                </div>
+                                <span class="badge bg-warning" data-badge="risk">Monitor closely</span>
+                            </div>
                         </div>
-                        <h3>47ms</h3>
-                        <p>Avg Response Time</p>
-                        <span class="badge bg-success">-5ms from last month</span>
                     </div>
                 </div>
             </div>
@@ -509,7 +740,7 @@
             <div class="row mb-4">
                 <div class="col-xl-8">
                     <div class="chart-card">
-                        <h5><i class="fas fa-chart-line"></i> Fraud Detection Trends</h5>
+                        <h5><i class="fas fa-chart-line"></i> Transaction Analysis by Date</h5>
                         <div id="fraudTrendsChart"></div>
                     </div>
                 </div>
@@ -527,9 +758,14 @@
                     <div class="transaction-table">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5><i class="fas fa-list"></i> Recent Transactions</h5>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                                <i class="fas fa-upload"></i> Upload Data
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary" id="exportBtn" style="display: none;">
+                                    <i class="fas fa-download"></i> Export Report
+                                </button>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                                    <i class="fas fa-upload"></i> Upload Data
+                                </button>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -537,51 +773,377 @@
                                     <tr>
                                         <th>Transaction ID</th>
                                         <th>Amount</th>
-                                        <th>Merchant</th>
+                                        <th>Customer / Merchant</th>
                                         <th>Risk Score</th>
                                         <th>Status</th>
-                                        <th>Action</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="transactionTableBody">
                                     <tr>
-                                        <td>#TXN001</td>
-                                        <td>$2,450.00</td>
-                                        <td>Tech Store Inc</td>
-                                        <td><span class="risk-badge high">High (85%)</span></td>
-                                        <td><span class="badge bg-danger">Flagged</span></td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-shield-alt me-2 text-success"></i>
+                                                <span class="fw-bold">#TXN001</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="fw-bold">$2,450.00</span></td>
+                                        <td>
+                                            <div>
+                                                <div class="fw-medium">Tech Store Inc</div>
+                                                <small class="text-muted">Electronics</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 80px; height: 8px;">
+                                                    <div class="progress-bar bg-danger" role="progressbar" style="width: 85%"></div>
+                                                </div>
+                                                <small class="text-danger fw-bold">85%</small>
+                                            </div>
+                                        </td>
+                                        <td><span class="risk-badge high">High Risk</span></td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning" title="Flag">
+                                                    <i class="fas fa-flag"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Block">
+                                                    <i class="fas fa-ban"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>#TXN002</td>
-                                        <td>$89.99</td>
-                                        <td>Coffee Shop</td>
-                                        <td><span class="risk-badge low">Low (15%)</span></td>
-                                        <td><span class="badge bg-success">Approved</span></td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-shield-alt me-2 text-success"></i>
+                                                <span class="fw-bold">#TXN002</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="fw-bold">$89.99</span></td>
+                                        <td>
+                                            <div>
+                                                <div class="fw-medium">Coffee Shop</div>
+                                                <small class="text-muted">Food & Beverage</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 80px; height: 8px;">
+                                                    <div class="progress-bar bg-success" role="progressbar" style="width: 15%"></div>
+                                                </div>
+                                                <small class="text-success fw-bold">15%</small>
+                                            </div>
+                                        </td>
+                                        <td><span class="risk-badge low">Low Risk</span></td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>#TXN003</td>
-                                        <td>$567.20</td>
-                                        <td>Online Retailer</td>
-                                        <td><span class="risk-badge medium">Medium (45%)</span></td>
-                                        <td><span class="badge bg-warning">Pending</span></td>
                                         <td>
-                                            <button class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-eye me-2 text-warning"></i>
+                                                <span class="fw-bold">#TXN003</span>
+                                            </div>
+                                        </td>
+                                        <td><span class="fw-bold">$567.20</span></td>
+                                        <td>
+                                            <div>
+                                                <div class="fw-medium">Online Retailer</div>
+                                                <small class="text-muted">E-commerce</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 80px; height: 8px;">
+                                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 45%"></div>
+                                                </div>
+                                                <small class="text-warning fw-bold">45%</small>
+                                            </div>
+                                        </td>
+                                        <td><span class="risk-badge medium">Medium Risk</span></td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-warning" title="Flag">
+                                                    <i class="fas fa-flag"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Results Section (Hidden by default) -->
+            <div id="analysisResults" style="display: none;">
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="chart-card">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="fas fa-chart-bar"></i> Fraud Analysis Summary</h5>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="switchAnalysisView('overview')">
+                                        <i class="fas fa-chart-pie"></i> Overview
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="switchAnalysisView('details')">
+                                        <i class="fas fa-list-alt"></i> Details
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="switchAnalysisView('patterns')">
+                                        <i class="fas fa-search"></i> Patterns
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Overview Tab -->
+                            <div id="analysisOverview" class="analysis-tab">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h6>Risk Distribution</h6>
+                                            <div id="miniRiskChart" style="height: 200px;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h6>Top Risk Factors</h6>
+                                            <div id="riskFactors">
+                                                <div class="risk-factor-item">
+                                                    <span class="badge bg-danger">High Amount</span>
+                                                    <span class="float-end">23%</span>
+                                                </div>
+                                                <div class="risk-factor-item">
+                                                    <span class="badge bg-warning">Unusual Time</span>
+                                                    <span class="float-end">18%</span>
+                                                </div>
+                                                <div class="risk-factor-item">
+                                                    <span class="badge bg-info">New Customer</span>
+                                                    <span class="float-end">15%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center">
+                                            <h6>Recommendations</h6>
+                                            <div class="recommendations">
+                                                <div class="recommendation-item">
+                                                    <i class="fas fa-exclamation-triangle text-warning"></i>
+                                                    Review 3 high-risk transactions
+                                                </div>
+                                                <div class="recommendation-item">
+                                                    <i class="fas fa-phone text-info"></i>
+                                                    Contact 2 customers for verification
+                                                </div>
+                                                <div class="recommendation-item">
+                                                    <i class="fas fa-shield-alt text-success"></i>
+                                                    Enable velocity checking
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Details Tab -->
+                            <div id="analysisDetails" class="analysis-tab" style="display: none;">
+                                <!-- Simplified Risk Overview for Small Merchants -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h5 class="mb-3">
+                                            <i class="fas fa-shield-alt text-primary me-2"></i>
+                                            Your Transaction Safety Overview
+                                        </h5>
+                                        <p class="text-muted">Easy-to-understand insights about your transactions</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Risk Score Meter -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-body text-center">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-tachometer-alt text-info me-2"></i>
+                                                    Overall Safety Score
+                                                </h6>
+                                                <div id="safetyScoreMeter" style="height: 200px;"></div>
+                                                <div id="safetyScoreText" class="mt-2">
+                                                    <h4 class="text-success">Excellent</h4>
+                                                    <p class="text-muted">Your transactions look very safe</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Transaction Safety Breakdown -->
+                                    <div class="col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-chart-pie text-success me-2"></i>
+                                                    Transaction Safety Breakdown
+                                                </h6>
+                                                <div id="safetyBreakdownChart" style="height: 200px;"></div>
+                                                <div class="mt-2">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span><i class="fas fa-circle text-success me-1"></i> Safe</span>
+                                                        <span id="safePercentage" class="fw-bold">0%</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span><i class="fas fa-circle text-warning me-1"></i> Watch</span>
+                                                        <span id="watchPercentage" class="fw-bold">0%</span>
+                                                    </div>
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span><i class="fas fa-circle text-danger me-1"></i> Risk</span>
+                                                        <span id="riskPercentage" class="fw-bold">0%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- When Do Risky Transactions Happen -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-clock text-warning me-2"></i>
+                                                    When Do Risky Transactions Happen?
+                                                </h6>
+                                                <div id="timeRiskChart" style="height: 220px;"></div>
+                                                <p class="text-muted small mt-2">
+                                                    <i class="fas fa-lightbulb me-1"></i>
+                                                    Watch for unusual activity during off-hours
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Transaction Amount Risk -->
+                                    <div class="col-md-6">
+                                        <div class="card h-100">
+                                            <div class="card-body">
+                                                <h6 class="card-title">
+                                                    <i class="fas fa-dollar-sign text-info me-2"></i>
+                                                    Are Large or Small Amounts Riskier?
+                                                </h6>
+                                                <div id="amountRiskChart" style="height: 220px;"></div>
+                                                <p class="text-muted small mt-2">
+                                                    <i class="fas fa-lightbulb me-1"></i>
+                                                    <span id="amountRiskInsight">Checking your transaction patterns...</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Quick Action Cards -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="mb-3">
+                                            <i class="fas fa-tasks text-primary me-2"></i>
+                                            What You Should Do Next
+                                        </h6>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-warning">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-eye fa-2x text-warning mb-2"></i>
+                                                <h6>Review High-Risk</h6>
+                                                <p class="text-muted small">
+                                                    <span id="reviewCount">0</span> transactions need your attention
+                                                </p>
+                                                <button class="btn btn-warning btn-sm" onclick="showHighRiskTransactions()">
+                                                    Review Now
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-info">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-phone fa-2x text-info mb-2"></i>
+                                                <h6>Contact Customers</h6>
+                                                <p class="text-muted small">
+                                                    Verify <span id="contactCount">0</span> transactions by phone
+                                                </p>
+                                                <button class="btn btn-info btn-sm" onclick="showContactList()">
+                                                    Get Numbers
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card border-success">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                                                <h6>Enable Protection</h6>
+                                                <p class="text-muted small">
+                                                    Set up automatic monitoring
+                                                </p>
+                                                <button class="btn btn-success btn-sm" onclick="enableProtection()">
+                                                    Turn On
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Simple Transaction List -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">
+                                                    <i class="fas fa-list text-primary me-2"></i>
+                                                    Your Transactions (Most Important First)
+                                                </h6>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <button type="button" class="btn btn-outline-primary active" onclick="filterTransactions('all')">All</button>
+                                                    <button type="button" class="btn btn-outline-warning" onclick="filterTransactions('risk')">Needs Review</button>
+                                                    <button type="button" class="btn btn-outline-success" onclick="filterTransactions('safe')">Safe</button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="detailedTransactionsList">
+                                                    <!-- Populated by JavaScript -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Patterns Tab -->
+                            <div id="analysisPatterns" class="analysis-tab" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Time-based Patterns</h6>
+                                        <div id="timePatternChart" style="height: 250px;"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Amount Distribution</h6>
+                                        <div id="amountPatternChart" style="height: 250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -680,7 +1242,24 @@
                     width: 2
                 },
                 xaxis: {
-                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    labels: {
+                        rotate: 0,
+                        hideOverlappingLabels: true,
+                        maxHeight: 80,
+                        style: {
+                            fontSize: '12px',
+                            fontWeight: 500
+                        }
+                    },
+                    axisBorder: {
+                        show: true,
+                        color: '#e5eaef'
+                    },
+                    axisTicks: {
+                        show: true,
+                        color: '#e5eaef'
+                    }
                 },
                 grid: {
                     borderColor: '#e5eaef'
@@ -688,6 +1267,7 @@
             };
 
             const fraudTrendsChart = new ApexCharts(document.querySelector("#fraudTrendsChart"), fraudTrendsOptions);
+            window.fraudTrendsChart = fraudTrendsChart; // Store globally for updates
             fraudTrendsChart.render();
 
             // Risk Distribution Chart
@@ -744,37 +1324,1799 @@
         });
 
         function handleFile(file) {
-            if (file && file.type === 'text/csv') {
-                uploadBtn.textContent = `Upload ${file.name}`;
-                uploadBtn.disabled = false;
+            if (file) {
+                // Check file extension and MIME type more flexibly
+                const fileName = file.name.toLowerCase();
+                const validExtensions = ['.csv'];
+                const validMimeTypes = [
+                    'text/csv', 
+                    'application/csv', 
+                    'text/comma-separated-values',
+                    'application/excel',
+                    'application/vnd.ms-excel',
+                    'text/plain'  // Some systems report CSV as plain text
+                ];
+                
+                const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+                const hasValidMimeType = validMimeTypes.includes(file.type) || file.type === '';
+                
+                if (hasValidExtension && (hasValidMimeType || file.type === '')) {
+                    uploadBtn.textContent = `Upload ${file.name}`;
+                    uploadBtn.disabled = false;
+                    uploadBtn.dataset.file = file.name;
+                    // Store the file for later upload
+                    uploadBtn.selectedFile = file;
+                    
+                    // Update UI
+                    uploadArea.querySelector('h6').textContent = `Selected: ${file.name}`;
+                    uploadArea.querySelector('p').textContent = 'Ready to upload and analyze';
+                } else {
+                    alert(`Please select a valid CSV file. \nDetected type: ${file.type}\nFile extension: ${fileName.substring(fileName.lastIndexOf('.'))}`);
+                    uploadBtn.disabled = true;
+                    uploadBtn.selectedFile = null;
+                    fileInput.value = '';  // Clear the input
+                }
+            } else {
+                uploadBtn.disabled = true;
+                uploadBtn.selectedFile = null;
             }
         }
 
-        uploadBtn.addEventListener('click', () => {
+        uploadBtn.addEventListener('click', async () => {
+            const file = uploadBtn.selectedFile;
+            if (!file) {
+                alert('Please select a file first.');
+                return;
+            }
+
+            // Show progress
             uploadProgress.style.display = 'block';
             const progressBar = uploadProgress.querySelector('.progress-bar');
+            uploadBtn.disabled = true;
             
-            // Simulate upload progress
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                progressBar.style.width = progress + '%';
-                
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        uploadProgress.style.display = 'none';
-                        bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
-                        alert('Transactions analyzed successfully!');
-                    }, 1000);
+            try {
+                // Create FormData
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Update progress to show starting
+                progressBar.style.width = '20%';
+                progressBar.textContent = 'Uploading...';
+
+                // Upload file to backend
+                const response = await fetch('/api/analyze-transactions', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                progressBar.style.width = '60%';
+                progressBar.textContent = 'Analyzing...';
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
                 }
-            }, 200);
+
+                const data = await response.json();
+                
+                // Complete progress
+                progressBar.style.width = '100%';
+                progressBar.textContent = 'Complete!';
+
+                // Hide progress after a moment
+                setTimeout(() => {
+                    uploadProgress.style.display = 'none';
+                    bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                    
+                    // Update dashboard with results
+                    updateDashboardWithResults(data);
+                    
+                    // Show success message
+                    showSuccessMessage(`Successfully analyzed ${data.summary.total_transactions} transactions!`);
+                    
+                    // Reset button
+                    uploadBtn.textContent = 'Upload & Analyze';
+                    uploadBtn.disabled = true;
+                    uploadBtn.selectedFile = null;
+                    fileInput.value = '';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                progressBar.style.width = '100%';
+                progressBar.textContent = 'Error!';
+                progressBar.classList.add('bg-danger');
+                
+                setTimeout(() => {
+                    uploadProgress.style.display = 'none';
+                    progressBar.classList.remove('bg-danger');
+                    uploadBtn.disabled = false;
+                    alert(`Upload failed: ${error.message}`);
+                }, 2000);
+            }
         });
 
-        // AI Assistant
+        function updateDashboardWithResults(data) {
+            const summary = data.summary;
+            
+            // Update stats cards with animation
+            animateCounterUpdate('[data-stat="total"]', summary.total_transactions || 0);
+            animateCounterUpdate('[data-stat="safe"]', summary.safe_payments || 0);
+            animateCounterUpdate('[data-stat="attention"]', summary.needs_attention || 0);
+            animateCounterUpdate('[data-stat="risk"]', summary.money_at_risk || 0, true);
+            
+            // Update badges with meaningful percentages
+            updateBadgePercentages(summary);
+            
+            // Update recent transactions table
+            updateRecentTransactionsTable(data.recent_transactions || []);
+            
+            // Update detailed analysis section
+            updateDetailedAnalysis(data);
+            
+            // Show analysis results tab
+            showAnalysisResults(data);
+            
+            // Refresh charts with new data (with slight delay to ensure containers are visible)
+            setTimeout(() => {
+                refreshChartsWithData(data);
+            }, 100);
+        }
+
+        function updateBadgePercentages(summary) {
+            // Update Total Transactions badge
+            const totalBadge = document.querySelector('[data-badge="total"]');
+            if (totalBadge && summary.total_processed_rate !== undefined) {
+                totalBadge.textContent = `${summary.total_processed_rate}% processed successfully`;
+                totalBadge.className = 'badge bg-success';
+            }
+            
+            // Update Need Attention badge
+            const attentionBadge = document.querySelector('[data-badge="attention"]');
+            if (attentionBadge && summary.needs_attention_rate !== undefined) {
+                attentionBadge.textContent = `${summary.needs_attention_rate}% of total transactions`;
+                // Change badge color based on percentage
+                if (summary.needs_attention_rate > 10) {
+                    attentionBadge.className = 'badge bg-danger';
+                } else if (summary.needs_attention_rate > 5) {
+                    attentionBadge.className = 'badge bg-warning';
+                } else {
+                    attentionBadge.className = 'badge bg-success';
+                }
+            }
+            
+            // Update Safe Payments badge
+            const safeBadge = document.querySelector('[data-badge="safe"]');
+            if (safeBadge && summary.safe_payment_rate !== undefined) {
+                safeBadge.textContent = `${summary.safe_payment_rate}% of total transactions`;
+                safeBadge.className = 'badge bg-success';
+            }
+            
+            // Update Money at Risk badge (keep existing logic for this one)
+            const riskBadge = document.querySelector('[data-badge="risk"]');
+            if (riskBadge && summary.money_at_risk !== undefined) {
+                if (summary.money_at_risk > 1000) {
+                    riskBadge.textContent = 'High risk amount';
+                    riskBadge.className = 'badge bg-danger';
+                } else if (summary.money_at_risk > 100) {
+                    riskBadge.textContent = 'Monitor closely';
+                    riskBadge.className = 'badge bg-warning';
+                } else {
+                    riskBadge.textContent = 'Low risk amount';
+                    riskBadge.className = 'badge bg-success';
+                }
+            }
+        }
+
+        // Helper function for consistent USD currency formatting
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        function animateCounterUpdate(selector, targetValue, isCurrency = false) {
+            const element = document.querySelector(selector);
+            if (!element) return;
+            
+            const startValue = parseFloat(element.textContent.replace(/[$,]/g, '')) || 0;
+            const duration = 1000; // 1 second
+            const startTime = performance.now();
+            
+            function updateValue(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = startValue + (targetValue - startValue) * easeOutQuart;
+                
+                if (isCurrency) {
+                    // Use the helper function for consistent formatting
+                    element.textContent = formatCurrency(currentValue);
+                } else {
+                    element.textContent = Math.floor(currentValue).toLocaleString();
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateValue);
+                }
+            }
+            
+            requestAnimationFrame(updateValue);
+        }
+
+        function updateRecentTransactionsTable(transactions) {
+            const tableBody = document.querySelector('#transactionTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+            
+            transactions.slice(0, 10).forEach((tx, index) => {
+                const row = document.createElement('tr');
+                const riskClass = tx.risk_score > 70 ? 'danger' : tx.risk_score > 40 ? 'warning' : 'success';
+                const safetyLevel = tx.safety_level || (tx.risk_score > 70 ? 'High Risk' : tx.risk_score > 40 ? 'Medium Risk' : 'Low Risk');
+                const riskIcon = tx.risk_score > 70 ? 'fas fa-exclamation-triangle' : tx.risk_score > 40 ? 'fas fa-eye' : 'fas fa-shield-alt';
+                
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="${riskIcon} me-2 text-${riskClass}"></i>
+                            <span class="fw-bold">${tx.transaction_id}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="fw-bold">${formatCurrency(parseFloat(tx.amount || 0))}</span>
+                    </td>
+                    <td>
+                        <div>
+                            <div class="fw-medium">${tx.customer_name || 'N/A'}</div>
+                            <small class="text-muted">${tx.merchant_category || ''}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 80px; height: 8px;">
+                                <div class="progress-bar bg-${riskClass}" role="progressbar" 
+                                     style="width: ${tx.risk_score}%" 
+                                     aria-valuenow="${tx.risk_score}" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small class="text-${riskClass} fw-bold">${tx.risk_score}%</small>
+                        </div>
+                    </td>
+                    <td><span class="risk-badge ${riskClass}">${safetyLevel}</span></td>
+                    <td>
+                        <div class="btn-group" role="group" aria-label="Transaction actions">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewTransactionDetails('${tx.transaction_id}', ${index})" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${tx.risk_score > 40 ? `
+                                <button class="btn btn-sm btn-outline-warning" onclick="flagTransaction('${tx.transaction_id}')" title="Flag for Review">
+                                    <i class="fas fa-flag"></i>
+                                </button>
+                            ` : ''}
+                            ${tx.risk_score > 70 ? `
+                                <button class="btn btn-sm btn-outline-danger" onclick="blockTransaction('${tx.transaction_id}')" title="Block Transaction">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                
+                // Add hover effect for risk details
+                row.addEventListener('mouseenter', () => {
+                    if (tx.anomaly_flags && tx.anomaly_flags !== 'None detected') {
+                        row.title = `Risk Factors: ${tx.anomaly_flags}`;
+                    }
+                });
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateDetailedAnalysis(data) {
+            // Create detailed analysis section if it doesn't exist
+            let analysisSection = document.getElementById('detailedAnalysis');
+            if (!analysisSection) {
+                analysisSection = document.createElement('div');
+                analysisSection.id = 'detailedAnalysis';
+                analysisSection.className = 'row mt-4';
+                document.querySelector('.dashboard-container').appendChild(analysisSection);
+            }
+            
+            const riskDistribution = calculateRiskDistribution(data.recent_transactions || []);
+            const industryAnalysis = calculateIndustryAnalysis(data.recent_transactions || []);
+            
+            analysisSection.innerHTML = `
+                <div class="col-md-6">
+                    <div class="chart-card">
+                        <h5><i class="fas fa-chart-bar"></i> Risk Level Distribution</h5>
+                        <div id="riskLevelChart"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-card">
+                        <h5><i class="fas fa-industry"></i> Industry Analysis</h5>
+                        <div id="industryChart"></div>
+                    </div>
+                </div>
+                <div class="col-12 mt-3">
+                    <div class="chart-card">
+                        <h5><i class="fas fa-clock"></i> Transaction Timeline</h5>
+                        <div id="timelineChart"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Render new charts
+            renderRiskLevelChart(riskDistribution);
+            renderIndustryChart(industryAnalysis);
+            renderTimelineChart(data.recent_transactions || []);
+        }
+
+        function calculateRiskDistribution(transactions) {
+            const distribution = { low: 0, medium: 0, high: 0 };
+            transactions.forEach(tx => {
+                if (tx.risk_score > 70) distribution.high++;
+                else if (tx.risk_score > 40) distribution.medium++;
+                else distribution.low++;
+            });
+            return distribution;
+        }
+
+        function calculateIndustryAnalysis(transactions) {
+            const industries = {};
+            transactions.forEach(tx => {
+                const industry = tx.industry_type || 'general';
+                if (!industries[industry]) {
+                    industries[industry] = { count: 0, totalRisk: 0 };
+                }
+                industries[industry].count++;
+                industries[industry].totalRisk += tx.risk_score || 0;
+            });
+            
+            Object.keys(industries).forEach(key => {
+                industries[key].avgRisk = industries[key].totalRisk / industries[key].count;
+            });
+            
+            return industries;
+        }
+
+        function showSuccessMessage(message) {
+            // Create or update a success alert
+            const alertContainer = document.querySelector('.alert-container') || createAlertContainer();
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show';
+            alert.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alert);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        function refreshChartsWithData(data) {
+            console.log('🔄 refreshChartsWithData called with:', data);
+            
+            // Update existing charts with new data if available
+            if (data && data.chart_data) {
+                console.log('📊 Chart data found:', data.chart_data);
+                try {
+                    // Update fraud trends chart
+                    updateFraudTrendsChart(data.chart_data);
+                    
+                    // Update risk distribution chart
+                    updateRiskDistributionChart(data.chart_data);
+                    
+                } catch (error) {
+                    console.error('❌ Could not update charts:', error);
+                }
+            } else {
+                console.error('❌ No data or chart_data provided to refreshChartsWithData:', {
+                    data_exists: !!data,
+                    chart_data_exists: !!(data && data.chart_data)
+                });
+            }
+        }
+
+        function updateFraudTrendsChart(chartData) {
+            console.log('🔍 updateFraudTrendsChart called with data:', chartData);
+            
+            // Check if chart container is visible
+            const chartContainer = document.querySelector("#fraudTrendsChart");
+            if (!chartContainer) {
+                console.error('❌ Chart container #fraudTrendsChart not found');
+                return;
+            }
+            
+            const analysisSection = document.getElementById('analysisResults');
+            if (analysisSection && analysisSection.style.display === 'none') {
+                console.warn('⚠️ Analysis section is hidden, making it visible first');
+                analysisSection.style.display = 'block';
+            }
+            
+            if (chartData && chartData.fraud_trends) {
+                const fraudTrendsData = chartData.fraud_trends;
+                console.log('📊 Fraud trends data:', fraudTrendsData);
+                
+                // Validate we have the required data
+                if (!fraudTrendsData.months || !fraudTrendsData.total_transactions || !fraudTrendsData.flagged_transactions) {
+                    console.error('❌ Missing required fraud trends data:', {
+                        months: fraudTrendsData.months,
+                        total_transactions: fraudTrendsData.total_transactions,
+                        flagged_transactions: fraudTrendsData.flagged_transactions
+                    });
+                    return;
+                }
+                
+                // Update the chart with new data
+                // Calculate responsive configuration based on data size
+                const numDataPoints = fraudTrendsData.months ? fraudTrendsData.months.length : 0;
+                const originalDataCount = fraudTrendsData.original_date_count || numDataPoints;
+                const isSampled = fraudTrendsData.is_sampled || false;
+                const isExtended = fraudTrendsData.is_extended || false;
+                
+                // Determine optimal chart settings based on data characteristics
+                let labelRotation = 0;
+                let fontSize = '12px';
+                let tickAmount;
+                let subtitleText = '';
+                
+                if (isExtended && originalDataCount <= 1) {
+                    // For very small datasets that we've extended
+                    subtitleText = originalDataCount === 0 ? 
+                        'No date-specific data available - showing current upload summary' :
+                        `Single date dataset - extended view for visualization`;
+                    fontSize = '12px';
+                } else if (isSampled) {
+                    // For large datasets that we've sampled
+                    subtitleText = `Showing ${numDataPoints} of ${originalDataCount} dates (sampled for clarity)`;
+                    
+                    if (originalDataCount > 50) {
+                        labelRotation = -45;
+                        fontSize = '10px';
+                        tickAmount = Math.min(12, numDataPoints);
+                    } else if (originalDataCount > 30) {
+                        labelRotation = -30;
+                        fontSize = '11px';
+                        tickAmount = Math.min(15, numDataPoints);
+                    }
+                } else if (numDataPoints > 15) {
+                    labelRotation = -15;
+                    fontSize = '11px';
+                } else if (numDataPoints > 10) {
+                    labelRotation = 0;
+                    fontSize = '12px';
+                }
+                
+                const newOptions = {
+                    series: [{
+                        name: 'Total Transactions',
+                        data: fraudTrendsData.total_transactions
+                    }, {
+                        name: 'Flagged Transactions',
+                        data: fraudTrendsData.flagged_transactions
+                    }],
+                    xaxis: {
+                        categories: fraudTrendsData.months,
+                        labels: {
+                            rotate: labelRotation,
+                            rotateAlways: labelRotation !== 0,
+                            hideOverlappingLabels: true,
+                            maxHeight: labelRotation !== 0 ? 100 : 60,
+                            style: {
+                                fontSize: fontSize,
+                                fontWeight: 500
+                            },
+                            trim: true,
+                            formatter: function(val) {
+                                return val;
+                            }
+                        },
+                        tickAmount: tickAmount,
+                        axisBorder: {
+                            show: true,
+                            color: '#e5eaef'
+                        },
+                        axisTicks: {
+                            show: true,
+                            color: '#e5eaef'
+                        },
+                        // Add subtitle if needed
+                        title: subtitleText ? {
+                            text: subtitleText,
+                            style: {
+                                fontSize: '10px',
+                                color: '#666'
+                            }
+                        } : undefined
+                    }
+                };
+                
+                console.log('📈 Updating chart with options:', newOptions);
+                
+                // Update the existing chart
+                if (window.fraudTrendsChart) {
+                    console.log('✅ Updating existing chart');
+                    try {
+                        window.fraudTrendsChart.updateOptions(newOptions, true, true);
+                    } catch (error) {
+                        console.warn('⚠️ Failed to update chart, recreating it:', error);
+                        window.fraudTrendsChart.destroy();
+                        window.fraudTrendsChart = null;
+                    }
+                }
+                
+                if (!window.fraudTrendsChart) {
+                    console.log('🆕 Creating new chart');
+                    // If chart doesn't exist, create it
+                    const fullOptions = {
+                        ...newOptions,
+                        chart: {
+                            height: 350,
+                            type: 'area',
+                            toolbar: {
+                                show: false
+                            },
+                            zoom: {
+                                enabled: numDataPoints > 20
+                            }
+                        },
+                        colors: ['#5d87ff', '#fa896b'],
+                        fill: {
+                            type: 'gradient',
+                            gradient: {
+                                shadeIntensity: 1,
+                                opacityFrom: 0.7,
+                                opacityTo: 0.3
+                            }
+                        },
+                        dataLabels: {
+                            enabled: false
+                        },
+                        stroke: {
+                            curve: 'smooth',
+                            width: 2
+                        },
+                        grid: {
+                            borderColor: '#e5eaef'
+                        }
+                    };
+                    
+                    window.fraudTrendsChart = new ApexCharts(document.querySelector("#fraudTrendsChart"), fullOptions);
+                    window.fraudTrendsChart.render();
+                    console.log('✅ New chart created and rendered');
+                }
+                
+                console.log('✅ Updated fraud trends chart with uploaded data');
+            } else {
+                console.error('❌ No chart data or fraud_trends data provided:', chartData);
+            }
+        }
+
+        function updateRiskDistributionChart(chartData) {
+            // Implementation for updating the risk distribution chart
+            if (chartData.risk_distribution) {
+                const labels = Object.keys(chartData.risk_distribution);
+                const values = Object.values(chartData.risk_distribution);
+                
+                // Update the existing chart or create new one
+                console.log('Updating risk distribution chart with real data');
+            }
+        }
+
+        // AI Assistant enhanced functionality
         document.getElementById('aiAssistant').addEventListener('click', function() {
-            alert('AI Assistant feature coming soon! This will provide intelligent insights about your fraud detection patterns.');
+            showAIAssistant();
         });
+
+        function showAIAssistant() {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'aiAssistantModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-robot me-2"></i>
+                                AI Fraud Detection Assistant
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="ai-chat-container" style="height: 400px; overflow-y: auto; border: 1px solid #e5eaef; border-radius: 8px; padding: 15px;">
+                                <div class="ai-message">
+                                    <div class="d-flex mb-3">
+                                        <div class="ai-avatar me-3">
+                                            <i class="fas fa-robot text-primary"></i>
+                                        </div>
+                                        <div class="ai-content">
+                                            <div class="fw-bold text-primary mb-1">FraudGuard AI</div>
+                                            <div class="ai-text">
+                                                Hello! I'm your AI fraud detection assistant. I can help you:
+                                                <ul class="mt-2 mb-0">
+                                                    <li>Analyze transaction patterns</li>
+                                                    <li>Explain risk scores and anomalies</li>
+                                                    <li>Provide fraud prevention recommendations</li>
+                                                    <li>Help optimize your security settings</li>
+                                                </ul>
+                                                What would you like to know about your transactions?
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ai-input-container mt-3">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Ask me about your fraud detection results..." id="aiChatInput">
+                                    <button class="btn btn-primary" type="button" onclick="sendAIMessage()">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="ai-suggestions mt-3">
+                                <small class="text-muted">Quick questions:</small>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-secondary me-2 mb-2" onclick="askAI('Why are some transactions flagged as high risk?')">
+                                        Why high risk?
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary me-2 mb-2" onclick="askAI('How can I reduce false positives?')">
+                                        Reduce false positives
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary me-2 mb-2" onclick="askAI('What patterns should I watch for?')">
+                                        Pattern analysis
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+            
+            // Focus on input
+            modal.querySelector('#aiChatInput').focus();
+            
+            // Handle enter key
+            modal.querySelector('#aiChatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendAIMessage();
+                }
+            });
+            
+            // Clean up modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                modal.remove();
+            });
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('aiChatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                askAI(message);
+                input.value = '';
+            }
+        }
+
+        function askAI(question) {
+            const chatContainer = document.querySelector('.ai-chat-container');
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'ai-message user-message';
+            userMessage.innerHTML = `
+                <div class="d-flex mb-3 justify-content-end">
+                    <div class="ai-content me-3">
+                        <div class="user-text bg-primary text-white p-2 rounded">
+                            ${question}
+                        </div>
+                    </div>
+                    <div class="ai-avatar">
+                        <i class="fas fa-user text-secondary"></i>
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(userMessage);
+            
+            // Add AI response (simulated)
+            setTimeout(() => {
+                const aiResponse = getAIResponse(question);
+                const aiMessage = document.createElement('div');
+                aiMessage.className = 'ai-message';
+                aiMessage.innerHTML = `
+                    <div class="d-flex mb-3">
+                        <div class="ai-avatar me-3">
+                            <i class="fas fa-robot text-primary"></i>
+                        </div>
+                        <div class="ai-content">
+                            <div class="fw-bold text-primary mb-1">FraudGuard AI</div>
+                            <div class="ai-text">
+                                ${aiResponse}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatContainer.appendChild(aiMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 1000);
+            
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function getAIResponse(question) {
+            const lowerQuestion = question.toLowerCase();
+            
+            if (lowerQuestion.includes('high risk') || lowerQuestion.includes('flagged')) {
+                return `Transactions are flagged as high risk based on several factors:
+                <ul class="mt-2">
+                    <li><strong>Unusual amounts:</strong> Very high or very low transaction amounts</li>
+                    <li><strong>Time patterns:</strong> Transactions at unusual hours (late night/early morning)</li>
+                    <li><strong>Geographic anomalies:</strong> Mismatched location data</li>
+                    <li><strong>Velocity patterns:</strong> Too many transactions in a short time</li>
+                    <li><strong>Customer behavior:</strong> Unusual patterns for specific customers</li>
+                </ul>
+                Review the "Risk Factors" section in your analysis for specific details about flagged transactions.`;
+            }
+            
+            if (lowerQuestion.includes('false positive') || lowerQuestion.includes('reduce')) {
+                return `To reduce false positives, consider these strategies:
+                <ul class="mt-2">
+                    <li><strong>Tune thresholds:</strong> Adjust risk score thresholds based on your business</li>
+                    <li><strong>Whitelist customers:</strong> Mark trusted customers for reduced scrutiny</li>
+                    <li><strong>Industry settings:</strong> Use industry-specific fraud rules</li>
+                    <li><strong>Time-based rules:</strong> Adjust for your business hours</li>
+                    <li><strong>Regular review:</strong> Continuously review and refine rules</li>
+                </ul>
+                Monitor your fraud rate vs. false positive rate to find the optimal balance.`;
+            }
+            
+            if (lowerQuestion.includes('pattern') || lowerQuestion.includes('watch')) {
+                return `Key patterns to monitor for fraud:
+                <ul class="mt-2">
+                    <li><strong>Card testing:</strong> Multiple small amounts (often $1-5)</li>
+                    <li><strong>Round numbers:</strong> Transactions ending in .00</li>
+                    <li><strong>Velocity attacks:</strong> Rapid successive transactions</li>
+                    <li><strong>Geographic jumps:</strong> Impossible travel times between locations</li>
+                    <li><strong>Off-hours activity:</strong> Unusual time patterns</li>
+                    <li><strong>Email patterns:</strong> Disposable or suspicious email addresses</li>
+                </ul>
+                Check your "Time Analysis" and "Geographic Analysis" sections for these patterns.`;
+            }
+            
+            if (lowerQuestion.includes('improve') || lowerQuestion.includes('better')) {
+                return `To improve your fraud detection:
+                <ul class="mt-2">
+                    <li><strong>Collect more data:</strong> IP addresses, device fingerprints, billing info</li>
+                    <li><strong>Machine learning:</strong> Use historical data to improve accuracy</li>
+                    <li><strong>Real-time scoring:</strong> Implement dynamic risk assessment</li>
+                    <li><strong>Customer profiling:</strong> Build behavioral profiles for users</li>
+                    <li><strong>External data:</strong> Use blacklists and threat intelligence</li>
+                </ul>
+                The more quality data you have, the better the fraud detection becomes.`;
+            }
+            
+            return `I'd be happy to help you with fraud detection questions! I can provide insights about:
+            <ul class="mt-2">
+                <li>Risk scoring and why transactions are flagged</li>
+                <li>How to reduce false positives</li>
+                <li>Fraud patterns to watch for</li>
+                <li>Best practices for fraud prevention</li>
+                <li>Interpreting your analysis results</li>
+            </ul>
+            Could you be more specific about what you'd like to know?`;
+        }
+
+        function renderRiskLevelChart(distribution) {
+            const options = {
+                series: [distribution.low, distribution.medium, distribution.high],
+                chart: {
+                    type: 'donut',
+                    height: 300
+                },
+                colors: ['#13deb9', '#ffae1f', '#fa896b'],
+                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                legend: {
+                    position: 'bottom'
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '70%',
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: true,
+                                    label: 'Total',
+                                    formatter: function (w) {
+                                        return w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val, opts) {
+                        return opts.w.config.series[opts.seriesIndex];
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#riskLevelChart"), options);
+            chart.render();
+        }
+
+        function renderIndustryChart(industries) {
+            const categories = Object.keys(industries);
+            const counts = categories.map(cat => industries[cat].count);
+            const avgRisks = categories.map(cat => industries[cat].avgRisk);
+
+            const options = {
+                series: [{
+                    name: 'Transaction Count',
+                    type: 'column',
+                    data: counts
+                }, {
+                    name: 'Average Risk Score',
+                    type: 'line',
+                    data: avgRisks
+                }],
+                chart: {
+                    height: 300,
+                    type: 'line',
+                    toolbar: { show: false }
+                },
+                stroke: {
+                    width: [0, 4]
+                },
+                colors: ['#5d87ff', '#fa896b'],
+                dataLabels: {
+                    enabled: true,
+                    enabledOnSeries: [1]
+                },
+                labels: categories.map(cat => cat.replace('_', ' ').toUpperCase()),
+                xaxis: {
+                    type: 'category'
+                },
+                yaxis: [{
+                    title: {
+                        text: 'Transaction Count',
+                    },
+                }, {
+                    opposite: true,
+                    title: {
+                        text: 'Average Risk Score'
+                    }
+                }]
+            };
+
+            const chart = new ApexCharts(document.querySelector("#industryChart"), options);
+            chart.render();
+        }
+
+        function renderTimelineChart(transactions) {
+            // Group transactions by hour
+            const hourlyData = Array.from({length: 24}, (_, i) => ({hour: i, count: 0, totalRisk: 0}));
+            
+            transactions.forEach(tx => {
+                const hour = tx.hour || 12;
+                if (hour >= 0 && hour < 24) {
+                    hourlyData[hour].count++;
+                    hourlyData[hour].totalRisk += tx.risk_score || 0;
+                }
+            });
+
+            const options = {
+                series: [{
+                    name: 'Transactions',
+                    data: hourlyData.map(d => d.count)
+                }, {
+                    name: 'Avg Risk Score',
+                    data: hourlyData.map(d => d.count > 0 ? d.totalRisk / d.count : 0)
+                }],
+                chart: {
+                    height: 350,
+                    type: 'line',
+                    toolbar: { show: false }
+                },
+                colors: ['#5d87ff', '#fa896b'],
+                stroke: {
+                    width: [3, 3],
+                    curve: 'smooth'
+                },
+                xaxis: {
+                    categories: hourlyData.map(d => `${d.hour}:00`),
+                    title: { text: 'Hour of Day' }
+                },
+                yaxis: [{
+                    title: { text: 'Transaction Count' }
+                }, {
+                    opposite: true,
+                    title: { text: 'Average Risk Score' }
+                }],
+                legend: {
+                    position: 'top'
+                },
+                grid: {
+                    borderColor: '#e5eaef'
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#timelineChart"), options);
+            chart.render();
+        }
+
+        function viewTransactionDetails(transactionId, index) {
+            // Create modal for transaction details
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'transactionDetailModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Transaction Details - ${transactionId}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Basic Information</h6>
+                                    <p><strong>Transaction ID:</strong> ${transactionId}</p>
+                                    <p><strong>Amount:</strong> Loading...</p>
+                                    <p><strong>Date:</strong> Loading...</p>
+                                    <p><strong>Time:</strong> Loading...</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Risk Assessment</h6>
+                                    <p><strong>Risk Score:</strong> Loading...</p>
+                                    <p><strong>Safety Level:</strong> Loading...</p>
+                                    <p><strong>Risk Factors:</strong> Loading...</p>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <h6>Actions</h6>
+                                <button class="btn btn-success me-2">Mark as Safe</button>
+                                <button class="btn btn-warning me-2">Request Verification</button>
+                                <button class="btn btn-danger">Block Transaction</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+            
+            // Clean up modal when hidden
+            modal.addEventListener('hidden.bs.modal', () => {
+                modal.remove();
+            });
+        }
+
+        function flagTransaction(transactionId) {
+            if (confirm(`Flag transaction ${transactionId} for manual review?`)) {
+                showAlert('Transaction flagged for review', 'warning');
+            }
+        }
+
+        function blockTransaction(transactionId) {
+            if (confirm(`Block transaction ${transactionId}? This action cannot be undone.`)) {
+                showAlert('Transaction blocked successfully', 'danger');
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.querySelector('.alert-container') || createAlertContainer();
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'danger' ? 'times-circle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        function showAnalysisResults(data) {
+            const analysisSection = document.getElementById('analysisResults');
+            const exportBtn = document.getElementById('exportBtn');
+            
+            if (analysisSection) {
+                analysisSection.style.display = 'block';
+                exportBtn.style.display = 'inline-block';
+                
+                // Store data for export
+                window.currentAnalysisData = data;
+                
+                // Update analysis content
+                updateAnalysisContent(data);
+            }
+        }
+
+        function updateAnalysisContent(data) {
+            const transactions = data.recent_transactions || [];
+            
+            // Update risk factors
+            const riskFactors = calculateRiskFactors(transactions);
+            updateRiskFactorsDisplay(riskFactors);
+            
+            // Update recommendations
+            updateRecommendations(data.summary);
+            
+            // Render mini charts
+            renderMiniRiskChart(transactions);
+            
+            // Update simplified charts for small merchants
+            updateSimplifiedCharts(data);
+        }
+        
+        function updateSimplifiedCharts(data) {
+            const transactions = data.recent_transactions || [];
+            const summary = data.summary || {};
+            
+            // Update Safety Score Meter
+            updateSafetyScoreMeter(summary);
+            
+            // Update Safety Breakdown Chart
+            updateSafetyBreakdownChart(summary);
+            
+            // Update Time Risk Chart
+            updateTimeRiskChart(transactions);
+            
+            // Update Amount Risk Chart
+            updateAmountRiskChart(transactions);
+            
+            // Update Action Cards
+            updateActionCards(summary);
+            
+            // Update detailed transactions list with filtering
+            updateDetailedTransactionsList(transactions);
+        }
+        
+        function updateSafetyScoreMeter(summary) {
+            const total = summary.total_transactions || 1;
+            const safe = summary.safe_payments || 0;
+            const safetyPercentage = Math.round((safe / total) * 100);
+            
+            const options = {
+                series: [safetyPercentage],
+                chart: {
+                    height: 200,
+                    type: 'radialBar',
+                },
+                colors: [safetyPercentage >= 90 ? '#13deb9' : safetyPercentage >= 70 ? '#ffae1f' : '#fa896b'],
+                plotOptions: {
+                    radialBar: {
+                        hollow: {
+                            size: '60%',
+                        },
+                        dataLabels: {
+                            show: true,
+                            name: {
+                                show: false,
+                            },
+                            value: {
+                                fontSize: '24px',
+                                fontWeight: 'bold',
+                                formatter: function (val) {
+                                    return val + '%'
+                                }
+                            }
+                        }
+                    }
+                },
+                labels: ['Safety Score'],
+            };
+
+            const chartElement = document.querySelector("#safetyScoreMeter");
+            if (chartElement) {
+                chartElement.innerHTML = ''; // Clear previous chart
+                const chart = new ApexCharts(chartElement, options);
+                chart.render();
+            }
+            
+            // Update safety text
+            const textElement = document.querySelector("#safetyScoreText");
+            if (textElement) {
+                let status, message, colorClass;
+                if (safetyPercentage >= 90) {
+                    status = "Excellent";
+                    message = "Your transactions look very safe";
+                    colorClass = "text-success";
+                } else if (safetyPercentage >= 70) {
+                    status = "Good";
+                    message = "Most transactions are safe, but review flagged ones";
+                    colorClass = "text-warning";
+                } else {
+                    status = "Needs Attention";
+                    message = "Several transactions need your review";
+                    colorClass = "text-danger";
+                }
+                
+                textElement.innerHTML = `
+                    <h4 class="${colorClass}">${status}</h4>
+                    <p class="text-muted">${message}</p>
+                `;
+            }
+        }
+        
+        function updateSafetyBreakdownChart(summary) {
+            const safe = summary.safe_payments || 0;
+            const watch = summary.watch_closely || 0;
+            const risk = summary.needs_attention || 0;
+            const total = safe + watch + risk || 1;
+            
+            const options = {
+                series: [safe, watch, risk],
+                chart: {
+                    type: 'donut',
+                    height: 200
+                },
+                colors: ['#13deb9', '#ffae1f', '#fa896b'],
+                labels: ['Safe', 'Watch', 'Risk'],
+                legend: {
+                    show: false
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '65%',
+                            labels: {
+                                show: true,
+                                total: {
+                                    show: true,
+                                    label: 'Total',
+                                    formatter: function () {
+                                        return total;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            height: 150
+                        }
+                    }
+                }]
+            };
+
+            const chartElement = document.querySelector("#safetyBreakdownChart");
+            if (chartElement) {
+                chartElement.innerHTML = ''; // Clear previous chart
+                const chart = new ApexCharts(chartElement, options);
+                chart.render();
+            }
+            
+            // Update percentages
+            const safePercent = Math.round((safe / total) * 100);
+            const watchPercent = Math.round((watch / total) * 100);
+            const riskPercent = Math.round((risk / total) * 100);
+            
+            document.getElementById('safePercentage').textContent = safePercent + '%';
+            document.getElementById('watchPercentage').textContent = watchPercent + '%';
+            document.getElementById('riskPercentage').textContent = riskPercent + '%';
+        }
+        
+        function updateTimeRiskChart(transactions) {
+            // Group transactions by hour and calculate risk levels
+            const hourlyData = {};
+            
+            transactions.forEach(tx => {
+                const hour = tx.hour || 12; // Default to noon if no hour data
+                const riskLevel = tx.safety_level || 'Safe';
+                
+                if (!hourlyData[hour]) {
+                    hourlyData[hour] = { safe: 0, risk: 0 };
+                }
+                
+                if (riskLevel === 'Needs Your Attention') {
+                    hourlyData[hour].risk++;
+                } else {
+                    hourlyData[hour].safe++;
+                }
+            });
+            
+            // Create time labels and data
+            const timeLabels = [];
+            const riskCounts = [];
+            const safeCounts = [];
+            
+            // Fill in 24 hours
+            for (let hour = 0; hour < 24; hour++) {
+                const data = hourlyData[hour] || { safe: 0, risk: 0 };
+                const timeLabel = hour === 0 ? '12 AM' : 
+                                hour < 12 ? `${hour} AM` : 
+                                hour === 12 ? '12 PM' : 
+                                `${hour - 12} PM`;
+                                
+                timeLabels.push(timeLabel);
+                riskCounts.push(data.risk);
+                safeCounts.push(data.safe);
+            }
+            
+            // Only show hours with data to avoid clutter
+            const filteredData = timeLabels.map((label, index) => ({
+                label,
+                risk: riskCounts[index],
+                safe: safeCounts[index],
+                total: riskCounts[index] + safeCounts[index]
+            })).filter(item => item.total > 0);
+            
+            const options = {
+                series: [{
+                    name: 'Risky Transactions',
+                    data: filteredData.map(item => item.risk)
+                }, {
+                    name: 'Safe Transactions',
+                    data: filteredData.map(item => item.safe)
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 220,
+                    stacked: true,
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#fa896b', '#13deb9'],
+                xaxis: {
+                    categories: filteredData.map(item => item.label),
+                    labels: {
+                        rotate: -45,
+                        style: {
+                            fontSize: '10px'
+                        }
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'Number of Transactions'
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    fontSize: '12px'
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                grid: {
+                    borderColor: '#e5eaef'
+                }
+            };
+
+            const chartElement = document.querySelector("#timeRiskChart");
+            if (chartElement) {
+                chartElement.innerHTML = ''; // Clear previous chart
+                const chart = new ApexCharts(chartElement, options);
+                chart.render();
+            }
+        }
+        
+        function updateAmountRiskChart(transactions) {
+            // Group transactions by amount ranges
+            const ranges = [
+                { label: '$0-$50', min: 0, max: 50 },
+                { label: '$50-$200', min: 50, max: 200 },
+                { label: '$200-$500', min: 200, max: 500 },
+                { label: '$500-$1K', min: 500, max: 1000 },
+                { label: '$1K+', min: 1000, max: Infinity }
+            ];
+            
+            const rangeData = ranges.map(range => {
+                const inRange = transactions.filter(tx => {
+                    const amount = parseFloat(tx.amount) || 0;
+                    return amount >= range.min && amount < range.max;
+                });
+                
+                const risky = inRange.filter(tx => tx.safety_level === 'Needs Your Attention').length;
+                const total = inRange.length;
+                
+                return {
+                    label: range.label,
+                    risky,
+                    total,
+                    percentage: total > 0 ? Math.round((risky / total) * 100) : 0
+                };
+            }).filter(item => item.total > 0); // Only show ranges with data
+            
+            const options = {
+                series: [{
+                    name: 'Risk Percentage',
+                    data: rangeData.map(item => item.percentage)
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 220,
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#5d87ff'],
+                xaxis: {
+                    categories: rangeData.map(item => item.label),
+                    labels: {
+                        style: {
+                            fontSize: '11px'
+                        }
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'Risk %'
+                    },
+                    max: 100
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val + '%'
+                    }
+                },
+                grid: {
+                    borderColor: '#e5eaef'
+                }
+            };
+
+            const chartElement = document.querySelector("#amountRiskChart");
+            if (chartElement) {
+                chartElement.innerHTML = ''; // Clear previous chart
+                const chart = new ApexCharts(chartElement, options);
+                chart.render();
+            }
+            
+            // Update insight text
+            const insight = document.querySelector("#amountRiskInsight");
+            if (insight && rangeData.length > 0) {
+                const highestRisk = rangeData.reduce((max, item) => 
+                    item.percentage > max.percentage ? item : max, rangeData[0]);
+                
+                if (highestRisk.percentage > 0) {
+                    insight.textContent = `${highestRisk.label} transactions have the highest risk (${highestRisk.percentage}%)`;
+                } else {
+                    insight.textContent = "All transaction amounts look safe!";
+                }
+            }
+        }
+        
+        function updateActionCards(summary) {
+            document.getElementById('reviewCount').textContent = summary.needs_attention || 0;
+            document.getElementById('contactCount').textContent = Math.min(summary.needs_attention || 0, 5);
+        }
+        
+        function updateDetailedTransactionsList(transactions) {
+            const container = document.getElementById('detailedTransactionsList');
+            if (!container) return;
+            
+            // Sort transactions by risk score (highest first)
+            const sortedTransactions = [...transactions].sort((a, b) => {
+                const scoreA = parseFloat(a.risk_score) || 0;
+                const scoreB = parseFloat(b.risk_score) || 0;
+                return scoreB - scoreA;
+            });
+            
+            container.innerHTML = sortedTransactions.map((tx, index) => {
+                const riskScore = parseFloat(tx.risk_score) || 0;
+                const amount = parseFloat(tx.amount) || 0;
+                const safetyLevel = tx.safety_level || 'Safe';
+                
+                let badgeClass = 'bg-success';
+                let badgeText = 'Safe';
+                let iconClass = 'fas fa-check-circle text-success';
+                
+                if (safetyLevel === 'Needs Your Attention') {
+                    badgeClass = 'bg-danger';
+                    badgeText = 'Needs Review';
+                    iconClass = 'fas fa-exclamation-triangle text-danger';
+                } else if (safetyLevel === 'Watch Closely') {
+                    badgeClass = 'bg-warning';
+                    badgeText = 'Watch';
+                    iconClass = 'fas fa-eye text-warning';
+                }
+                
+                return `
+                    <div class="transaction-item border-bottom py-3" data-safety="${safetyLevel}">
+                        <div class="row align-items-center">
+                            <div class="col-md-1 text-center">
+                                <i class="${iconClass} fa-lg"></i>
+                            </div>
+                            <div class="col-md-3">
+                                <h6 class="mb-1">${formatCurrency(amount)}</h6>
+                                <small class="text-muted">${tx.transaction_id || 'N/A'}</small>
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="customer-info">
+                                    <div class="fw-bold">${tx.customer_name || 'Unknown'}</div>
+                                    <small class="text-muted">${tx.customer_city || ''}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <small class="text-muted">
+                                    ${tx.transaction_date || 'N/A'}<br>
+                                    ${tx.transaction_time || 'N/A'}
+                                </small>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                ${safetyLevel === 'Needs Your Attention' ? 
+                                    `<button class="btn btn-sm btn-outline-primary" onclick="viewTransactionDetails('${tx.transaction_id}', ${index})">
+                                        Review
+                                    </button>` : 
+                                    `<small class="text-success">✓ Looks Good</small>`
+                                }
+                            </div>
+                        </div>
+                        ${safetyLevel === 'Needs Your Attention' && tx.anomaly_flags && tx.anomaly_flags !== 'None detected' ? 
+                            `<div class="row mt-2">
+                                <div class="col-md-11 offset-md-1">
+                                    <div class="alert alert-warning py-2 mb-0">
+                                        <small><i class="fas fa-info-circle me-1"></i> ${tx.anomaly_flags}</small>
+                                    </div>
+                                </div>
+                            </div>` : ''
+                        }
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Transaction filtering functions
+        function filterTransactions(type) {
+            const items = document.querySelectorAll('.transaction-item');
+            const buttons = document.querySelectorAll('[onclick^="filterTransactions"]');
+            
+            // Update button states
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            items.forEach(item => {
+                const safety = item.dataset.safety;
+                let show = true;
+                
+                switch(type) {
+                    case 'risk':
+                        show = safety === 'Needs Your Attention';
+                        break;
+                    case 'safe':
+                        show = safety === 'Safe';
+                        break;
+                    case 'all':
+                    default:
+                        show = true;
+                        break;
+                }
+                
+                item.style.display = show ? 'block' : 'none';
+            });
+        }
+        
+        // Action card functions
+        function showHighRiskTransactions() {
+            // Switch to details tab and filter to risk transactions
+            switchAnalysisView('details');
+            
+            // Small delay to ensure tab is visible
+            setTimeout(() => {
+                filterTransactions('risk');
+                document.querySelector('#analysisDetails').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+        
+        function showContactList() {
+            // Create a modal with contact information for high-risk transactions
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'contactListModal';
+            
+            // Get high-risk transactions from current data
+            const highRiskTransactions = window.currentAnalysisData?.recent_transactions?.filter(tx => 
+                tx.safety_level === 'Needs Your Attention'
+            ).slice(0, 5) || [];
+            
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-phone text-info me-2"></i>
+                                Customer Contact List for Verification
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p class="text-muted mb-3">Contact these customers to verify their high-risk transactions:</p>
+                            ${highRiskTransactions.length > 0 ? 
+                                highRiskTransactions.map(tx => `
+                                    <div class="card mb-2">
+                                        <div class="card-body py-2">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-3">
+                                                    <strong>${tx.customer_name || 'Unknown'}</strong>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <span class="text-primary">${tx.customer_phone || 'No phone'}</span>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <span class="text-success">${formatCurrency(tx.amount || 0)}</span>
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    <small class="text-muted">${tx.transaction_id || ''}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('') :
+                                '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>No high-risk transactions found!</div>'
+                            }
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="exportContactList()">Export List</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            const modalInstance = new bootstrap.Modal(modal);
+            modalInstance.show();
+            
+            modal.addEventListener('hidden.bs.modal', () => {
+                modal.remove();
+            });
+        }
+        
+        function enableProtection() {
+            showAlert('Real-time monitoring enabled! We\'ll alert you to suspicious activity.', 'success');
+        }
+        
+        function exportContactList() {
+            const highRiskTransactions = window.currentAnalysisData?.recent_transactions?.filter(tx => 
+                tx.safety_level === 'Needs Your Attention'
+            ) || [];
+            
+            const csvContent = [
+                ['Customer Name', 'Phone', 'Email', 'Amount', 'Transaction ID', 'Date'],
+                ...highRiskTransactions.map(tx => [
+                    tx.customer_name || 'Unknown',
+                    tx.customer_phone || 'No phone',
+                    tx.customer_email || 'No email',
+                    tx.amount || 0,
+                    tx.transaction_id || '',
+                    tx.transaction_date || ''
+                ])
+            ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `contact_list_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showAlert('Contact list exported successfully', 'success');
+        }
+
+        function calculateRiskFactors(transactions) {
+            const factors = {};
+            
+            transactions.forEach(tx => {
+                if (tx.anomaly_flags && tx.anomaly_flags !== 'None detected') {
+                    const flags = tx.anomaly_flags.split(';');
+                    flags.forEach(flag => {
+                        const trimmed = flag.trim();
+                        if (trimmed) {
+                            factors[trimmed] = (factors[trimmed] || 0) + 1;
+                        }
+                    });
+                }
+            });
+            
+            // Convert to sorted array
+            return Object.entries(factors)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([factor, count]) => ({
+                    factor,
+                    count,
+                    percentage: Math.round((count / transactions.length) * 100)
+                }));
+        }
+
+        function updateRiskFactorsDisplay(riskFactors) {
+            const container = document.getElementById('riskFactors');
+            if (!container) return;
+            
+            container.innerHTML = riskFactors.map(rf => `
+                <div class="risk-factor-item mb-2">
+                    <span class="badge ${rf.percentage > 20 ? 'bg-danger' : rf.percentage > 10 ? 'bg-warning' : 'bg-info'}">${rf.factor}</span>
+                    <span class="float-end">${rf.percentage}%</span>
+                </div>
+            `).join('');
+        }
+
+        function updateRecommendations(summary) {
+            const container = document.querySelector('.recommendations');
+            if (!container) return;
+            
+            const recommendations = [];
+            
+            if (summary.needs_attention > 0) {
+                recommendations.push({
+                    icon: 'fas fa-exclamation-triangle text-warning',
+                    text: `Review ${summary.needs_attention} high-risk transactions`
+                });
+            }
+            
+            if (summary.money_at_risk > 1000) {
+                recommendations.push({
+                    icon: 'fas fa-phone text-info',
+                    text: `Contact customers for verification (${formatCurrency(summary.money_at_risk)} at risk)`
+                });
+            }
+            
+            recommendations.push({
+                icon: 'fas fa-shield-alt text-success',
+                text: 'Enable real-time monitoring'
+            });
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation-item mb-2">
+                    <i class="${rec.icon}"></i>
+                    ${rec.text}
+                </div>
+            `).join('');
+        }
+
+        function renderMiniRiskChart(transactions) {
+            const riskDistribution = calculateRiskDistribution(transactions);
+            
+            const options = {
+                series: [riskDistribution.low, riskDistribution.medium, riskDistribution.high],
+                chart: {
+                    type: 'donut',
+                    height: 200
+                },
+                colors: ['#13deb9', '#ffae1f', '#fa896b'],
+                labels: ['Low', 'Medium', 'High'],
+                legend: {
+                    show: false
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '70%'
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#miniRiskChart"), options);
+            chart.render();
+        }
+
+        function switchAnalysisView(viewType) {
+            // Hide all tabs
+            document.querySelectorAll('.analysis-tab').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // Show selected tab
+            const targetTab = document.getElementById(`analysis${viewType.charAt(0).toUpperCase() + viewType.slice(1)}`);
+            if (targetTab) {
+                targetTab.style.display = 'block';
+            }
+            
+            // Update button states
+            document.querySelectorAll('[onclick^="switchAnalysisView"]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Export functionality
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            if (window.currentAnalysisData) {
+                exportAnalysisReport(window.currentAnalysisData);
+            }
+        });
+
+        function exportAnalysisReport(data) {
+            const csvContent = generateCSVReport(data);
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fraud_analysis_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showAlert('Report exported successfully', 'success');
+        }
+
+        function generateCSVReport(data) {
+            const headers = [
+                'Transaction ID',
+                'Amount',
+                'Customer Name',
+                'Risk Score',
+                'Safety Level',
+                'Industry Type',
+                'Anomaly Flags',
+                'Transaction Date',
+                'Transaction Time'
+            ];
+            
+            const rows = data.recent_transactions.map(tx => [
+                tx.transaction_id || '',
+                tx.amount || '',
+                tx.customer_name || '',
+                tx.risk_score || '',
+                tx.safety_level || '',
+                tx.industry_type || '',
+                tx.anomaly_flags || '',
+                tx.transaction_date || '',
+                tx.transaction_time || ''
+            ]);
+            
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(cell => `"${cell}"`).join(','))
+                .join('\n');
+            
+            return csvContent;
+        }
+
+        function createAlertContainer() {
+            const container = document.createElement('div');
+            container.className = 'alert-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+            return container;
+        }
 
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {

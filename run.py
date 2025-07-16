@@ -96,11 +96,15 @@ def start_server():
     print("\n🚀 Starting FraudGuard Pro server...")
     
     # Change to backend directory
-    os.chdir("backend")
+    backend_dir = Path("backend")
+    if not backend_dir.exists():
+        print("❌ Backend directory not found!")
+        sys.exit(1)
     
+    # Use the reliable server runner
     try:
-        # Start the server
-        print("   Server starting at http://localhost:8000")
+        print("   Using backend/run_server.py for reliable startup")
+        print("   Server will be available at http://localhost:8080")
         print("   Press Ctrl+C to stop the server")
         print("\n" + "="*80)
         
@@ -108,24 +112,22 @@ def start_server():
         import threading
         def open_browser():
             time.sleep(3)
-            webbrowser.open("http://localhost:8000")
+            webbrowser.open("http://localhost:8080")
         
         browser_thread = threading.Thread(target=open_browser)
         browser_thread.daemon = True
         browser_thread.start()
         
-        # Start the server (this will block)
+        # Start the server using our reliable runner
         subprocess.run([
-            sys.executable, "-m", "uvicorn", "main:app", 
-            "--host", "0.0.0.0", 
-            "--port", "8000", 
-            "--reload"
-        ])
+            sys.executable, "run_server.py"
+        ], cwd=backend_dir)
     
     except KeyboardInterrupt:
         print("\n\n🛑 Server stopped by user")
     except Exception as e:
         print(f"\n❌ Error starting server: {e}")
+        print("💡 Try running: cd backend && python run_server.py")
         sys.exit(1)
 
 def main():

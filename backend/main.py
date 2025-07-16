@@ -158,8 +158,29 @@ async def read_root():
                     document.getElementById('fileInput').addEventListener('change', function(e) {
                         selectedFile = e.target.files[0];
                         if (selectedFile) {
-                            document.querySelector('.upload-area h3').textContent = '📄 ' + selectedFile.name;
-                            document.querySelector('.upload-area p').textContent = 'File selected - click Analyze to process';
+                            // Check file extension and MIME type more flexibly
+                            const fileName = selectedFile.name.toLowerCase();
+                            const validExtensions = ['.csv'];
+                            const validMimeTypes = [
+                                'text/csv', 
+                                'application/csv', 
+                                'text/comma-separated-values',
+                                'application/excel',
+                                'application/vnd.ms-excel',
+                                'text/plain'  // Some systems report CSV as plain text
+                            ];
+                            
+                            const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+                            const hasValidMimeType = validMimeTypes.includes(selectedFile.type) || selectedFile.type === '';
+                            
+                            if (hasValidExtension && (hasValidMimeType || selectedFile.type === '')) {
+                                document.querySelector('.upload-area h3').textContent = '📄 ' + selectedFile.name;
+                                document.querySelector('.upload-area p').textContent = 'File selected - click Analyze to process';
+                            } else {
+                                alert(`Please select a valid CSV file. \\nDetected type: ${selectedFile.type}\\nFile extension: ${fileName.substring(fileName.lastIndexOf('.'))}`);
+                                selectedFile = null;
+                                this.value = '';  // Clear the input
+                            }
                         }
                     });
                     
@@ -198,7 +219,7 @@ async def read_root():
                                     <p><strong>Total Transactions:</strong> ${data.summary.total_transactions}</p>
                                     <p><strong>Safe Payments:</strong> ${data.summary.safe_payments}</p>
                                     <p><strong>Need Attention:</strong> ${data.summary.needs_attention}</p>
-                                    <p><strong>Money at Risk:</strong> $${data.summary.money_at_risk.toFixed(2)}</p>
+                                    <p><strong>Money at Risk:</strong> ${new Intl.NumberFormat('en-US', {style: 'currency', currency: 'USD'}).format(data.summary.money_at_risk)}</p>
                                     <p><strong>Detection Accuracy:</strong> ${data.summary.detection_accuracy}%</p>
                                 </div>
                             `;
@@ -346,6 +367,13 @@ async def analyze_transactions(file: UploadFile = File(...)):
         # Calculate summary statistics
         total_transactions = len(df_analyzed)
         
+        # Ensure risk_score column exists and handle NaN values
+        if 'risk_score' not in df_analyzed.columns:
+            df_analyzed['risk_score'] = 50  # Default risk score
+        else:
+            # Fill NaN values in risk_score
+            df_analyzed['risk_score'] = df_analyzed['risk_score'].fillna(50)
+        
         if 'safety_level' in df_analyzed.columns:
             needs_attention = len(df_analyzed[df_analyzed['safety_level'] == 'Needs Your Attention'])
             watch_closely = len(df_analyzed[df_analyzed['safety_level'] == 'Watch Closely'])
@@ -357,7 +385,11 @@ async def analyze_transactions(file: UploadFile = File(...)):
         
         # Calculate money at risk
         if 'amount' in df_analyzed.columns and 'safety_level' in df_analyzed.columns:
-            money_at_risk = float(df_analyzed[df_analyzed['safety_level'] == 'Needs Your Attention']['amount'].sum())
+            high_risk_df = df_analyzed[df_analyzed['safety_level'] == 'Needs Your Attention']
+            money_at_risk = float(high_risk_df['amount'].sum())
+            # Handle NaN values
+            if pd.isna(money_at_risk) or np.isnan(money_at_risk) or np.isinf(money_at_risk):
+                money_at_risk = 0.0
         else:
             money_at_risk = 0.0
         
@@ -367,21 +399,28 @@ async def analyze_transactions(file: UploadFile = File(...)):
         # Clean up data for JSON serialization
         for transaction in recent_transactions:
             for key, value in transaction.items():
-                if pd.isna(value):
+                if pd.isna(value) or (isinstance(value, float) and (np.isnan(value) or np.isinf(value))):
                     transaction[key] = None
                 elif isinstance(value, np.integer):
                     transaction[key] = int(value)
                 elif isinstance(value, np.floating):
-                    transaction[key] = float(value)
+                    # Handle potential NaN/inf values
+                    if np.isnan(value) or np.isinf(value):
+                        transaction[key] = None
+                    else:
+                        transaction[key] = float(value)
                 elif isinstance(value, (np.ndarray, pd.Series)):
                     transaction[key] = value.tolist()
+                elif isinstance(value, str) and value.lower() in ['nan', 'inf', '-inf', 'null']:
+                    transaction[key] = None
         
         # Create chart data
         chart_data = create_chart_data(df_analyzed)
         
         print(f"✅ Analysis complete: {total_transactions} transactions processed")
         
-        return {
+        # Prepare response data and clean for JSON serialization
+        response_data = {
             "status": "success",
             "analysis_timestamp": datetime.now().isoformat(),
             "summary": {
@@ -391,12 +430,22 @@ async def analyze_transactions(file: UploadFile = File(...)):
                 "needs_attention": needs_attention,
                 "money_at_risk": money_at_risk,
                 "detection_accuracy": 98.7,
-                "avg_response_time": random.randint(45, 55)
+                "avg_response_time": random.randint(45, 55),
+                # Add percentage calculations based on current data
+                "total_processed_rate": 100.0,  # All transactions processed successfully
+                "needs_attention_rate": round((needs_attention / total_transactions) * 100, 1) if total_transactions > 0 else 0.0,
+                "safe_payment_rate": round((safe_payments / total_transactions) * 100, 1) if total_transactions > 0 else 0.0,
+                "watch_closely_rate": round((watch_closely / total_transactions) * 100, 1) if total_transactions > 0 else 0.0
             },
             "chart_data": chart_data,
             "recent_transactions": recent_transactions,
             "high_risk_transactions": get_high_risk_transactions(df_analyzed)
         }
+        
+        # Clean all data for JSON serialization
+        response_data = clean_for_json_serialization(response_data)
+        
+        return response_data
         
     except HTTPException:
         raise
@@ -409,16 +458,193 @@ def create_chart_data(df_analyzed: pd.DataFrame) -> Dict[str, Any]:
     chart_data = {}
     
     try:
-        # Fraud trends data (last 12 months simulation)
-        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        total_transactions = [3100, 4000, 2800, 5100, 4200, 3500, 4800, 5200, 3900, 4600, 5800, 6200]
-        flagged_transactions = [50, 80, 45, 95, 75, 60, 85, 90, 70, 80, 100, 110]
+        print(f"🔍 Creating chart data for {len(df_analyzed)} transactions")
+        print(f"📊 Columns available: {list(df_analyzed.columns)}")
         
-        chart_data['fraud_trends'] = {
-            'months': months,
-            'total_transactions': total_transactions,
-            'flagged_transactions': flagged_transactions
-        }
+        # Fraud trends data from actual uploaded CSV
+        if 'transaction_date' in df_analyzed.columns and len(df_analyzed) > 0:
+            try:
+                print("📅 Processing transaction dates...")
+                # Convert transaction_date to datetime and extract date components
+                df_temp = df_analyzed.copy()
+                df_temp['transaction_date'] = pd.to_datetime(df_temp['transaction_date'], errors='coerce')
+                df_temp = df_temp.dropna(subset=['transaction_date'])
+                
+                print(f"📅 Valid dates found: {len(df_temp)}")
+                
+                if len(df_temp) > 0:
+                    # Group by date and count transactions
+                    daily_counts = df_temp.groupby(df_temp['transaction_date'].dt.date).size().reset_index()
+                    daily_counts.columns = ['date', 'total_count']
+                    
+                    print(f"📊 Daily counts: {len(daily_counts)} unique dates")
+                    
+                    # Count flagged transactions (high risk) by date
+                    if 'safety_level' in df_temp.columns:
+                        high_risk_df = df_temp[df_temp['safety_level'] == 'Needs Your Attention']
+                    else:
+                        high_risk_df = df_temp[df_temp['risk_score'] > 70]
+                    
+                    if len(high_risk_df) > 0:
+                        daily_flagged = high_risk_df.groupby(high_risk_df['transaction_date'].dt.date).size().reset_index()
+                        daily_flagged.columns = ['date', 'flagged_count']
+                    else:
+                        # No flagged transactions
+                        daily_flagged = pd.DataFrame(columns=['date', 'flagged_count'])
+                    
+                    # Merge the data
+                    trend_data = daily_counts.merge(daily_flagged, on='date', how='left')
+                    trend_data['flagged_count'] = trend_data['flagged_count'].fillna(0).astype(int)
+                    
+                    # Sort by date
+                    trend_data = trend_data.sort_values('date')
+                    
+                    # Smart date formatting and sampling for large datasets
+                    num_dates = len(trend_data)
+                    
+                    if num_dates > 50:
+                        # For very large datasets, use intelligent sampling
+                        # Sample to show roughly 15-20 data points with even distribution
+                        target_points = min(20, max(10, num_dates // 5))
+                        step = max(1, num_dates // target_points)
+                        
+                        # Ensure we get the first and last points
+                        indices = list(range(0, num_dates, step))
+                        if indices[-1] != num_dates - 1:
+                            indices.append(num_dates - 1)
+                        
+                        sampled_data = trend_data.iloc[indices].copy()
+                        date_labels = sampled_data['date'].apply(lambda x: x.strftime('%m/%d')).tolist()
+                        total_transactions = sampled_data['total_count'].tolist()
+                        flagged_transactions = sampled_data['flagged_count'].tolist()
+                        
+                        print(f"📊 Very large dataset ({num_dates} dates), intelligently sampled to {len(date_labels)} points")
+                        
+                    elif num_dates > 30:
+                        # For large datasets, sample every Nth point to avoid crowding
+                        step = max(1, num_dates // 15)  # Show maximum 15 points
+                        sampled_data = trend_data.iloc[::step].copy()
+                        
+                        # Use shorter date format for large datasets
+                        date_labels = sampled_data['date'].apply(lambda x: x.strftime('%m/%d')).tolist()
+                        total_transactions = sampled_data['total_count'].tolist()
+                        flagged_transactions = sampled_data['flagged_count'].tolist()
+                        
+                        print(f"📊 Large dataset detected ({num_dates} dates), sampled to {len(date_labels)} points")
+                        
+                    elif num_dates > 14:
+                        # Medium dataset - use abbreviated format but show all points
+                        date_labels = trend_data['date'].apply(lambda x: x.strftime('%m/%d')).tolist()
+                        total_transactions = trend_data['total_count'].tolist()
+                        flagged_transactions = trend_data['flagged_count'].tolist()
+                        print(f"📊 Medium dataset ({num_dates} dates), showing all points")
+                        
+                    else:
+                        # Small dataset - use full date format
+                        date_labels = trend_data['date'].apply(lambda x: x.strftime('%m/%d')).tolist()
+                        total_transactions = trend_data['total_count'].tolist()
+                        flagged_transactions = trend_data['flagged_count'].tolist()
+                        print(f"📊 Small dataset ({num_dates} dates), showing all points with full format")
+                    
+                    # Ensure we have at least 2 data points for proper chart rendering
+                    if len(date_labels) < 2:
+                        print(f"⚠️ Only {len(date_labels)} data point(s) found, creating additional points for chart visualization")
+                        
+                        if len(date_labels) == 1:
+                            # Add a previous day and next day with zero values for better visualization
+                            original_date = trend_data['date'].iloc[0]
+                            prev_date = original_date - pd.Timedelta(days=1)
+                            next_date = original_date + pd.Timedelta(days=1)
+                            
+                            # Create extended data with the original point in the middle
+                            date_labels = [
+                                prev_date.strftime('%m/%d'),
+                                original_date.strftime('%m/%d'),
+                                next_date.strftime('%m/%d')
+                            ]
+                            total_transactions = [0, total_transactions[0], 0]
+                            flagged_transactions = [0, flagged_transactions[0], 0]
+                            
+                            print(f"📊 Extended single data point to 3 points for better visualization")
+                        else:
+                            # For completely empty data, create a minimal visualization
+                            from datetime import date
+                            today = date.today()
+                            yesterday = today - pd.Timedelta(days=1)
+                            
+                            date_labels = [yesterday.strftime('%m/%d'), today.strftime('%m/%d')]
+                            total_transactions = [0, 0]
+                            flagged_transactions = [0, 0]
+                            
+                            print(f"📊 Created minimal 2-point chart for empty dataset")
+                    
+                    chart_data['fraud_trends'] = {
+                        'months': date_labels,
+                        'total_transactions': total_transactions,
+                        'flagged_transactions': flagged_transactions,
+                        'original_date_count': num_dates,
+                        'sampled_date_count': len(date_labels),
+                        'is_sampled': len(date_labels) < num_dates if num_dates > 0 else False,
+                        'is_extended': len(date_labels) > num_dates  # Flag when we've added padding points
+                    }
+                    print(f"✅ Created fraud trends chart with {len(date_labels)} data points")
+                else:
+                    # Fallback if no valid dates
+                    print("⚠️ No valid dates found, creating minimal chart with current data")
+                    flagged_count = len(df_analyzed[df_analyzed['safety_level'] == 'Needs Your Attention']) if 'safety_level' in df_analyzed.columns else len(df_analyzed[df_analyzed['risk_score'] > 70])
+                    
+                    # Create a 2-point chart for better visualization
+                    from datetime import date
+                    today = date.today()
+                    yesterday = today - pd.Timedelta(days=1)
+                    
+                    chart_data['fraud_trends'] = {
+                        'months': [yesterday.strftime('%m/%d'), today.strftime('%m/%d')],
+                        'total_transactions': [0, len(df_analyzed)],
+                        'flagged_transactions': [0, flagged_count],
+                        'original_date_count': 1,
+                        'sampled_date_count': 2,
+                        'is_sampled': False,
+                        'is_extended': True
+                    }
+            except Exception as e:
+                print(f"Warning: Error processing trend data: {e}")
+                # Fallback with basic data from current upload
+                flagged_count = len(df_analyzed[df_analyzed['safety_level'] == 'Needs Your Attention']) if 'safety_level' in df_analyzed.columns else len(df_analyzed[df_analyzed['risk_score'] > 70])
+                
+                # Create a 2-point chart for better visualization
+                from datetime import date
+                today = date.today()
+                yesterday = today - pd.Timedelta(days=1)
+                
+                chart_data['fraud_trends'] = {
+                    'months': [yesterday.strftime('%m/%d'), today.strftime('%m/%d')],
+                    'total_transactions': [0, len(df_analyzed)],
+                    'flagged_transactions': [0, flagged_count],
+                    'original_date_count': 1,
+                    'sampled_date_count': 2,
+                    'is_sampled': False,
+                    'is_extended': True
+                }
+        else:
+            # Fallback if no date column
+            print("⚠️ No transaction_date column found, creating minimal chart")
+            flagged_count = len(df_analyzed[df_analyzed['safety_level'] == 'Needs Your Attention']) if 'safety_level' in df_analyzed.columns else len(df_analyzed[df_analyzed['risk_score'] > 70])
+            
+            # Create a 2-point chart for better visualization
+            from datetime import date
+            today = date.today()
+            yesterday = today - pd.Timedelta(days=1)
+            
+            chart_data['fraud_trends'] = {
+                'months': [yesterday.strftime('%m/%d'), today.strftime('%m/%d')],
+                'total_transactions': [0, len(df_analyzed)],
+                'flagged_transactions': [0, flagged_count],
+                'original_date_count': 0,
+                'sampled_date_count': 2,
+                'is_sampled': False,
+                'is_extended': True
+            }
         
         # Risk distribution from actual data
         if 'safety_level' in df_analyzed.columns:
@@ -439,11 +665,15 @@ def create_chart_data(df_analyzed: pd.DataFrame) -> Dict[str, Any]:
         if 'transaction_date' in df_analyzed.columns:
             try:
                 daily_data = df_analyzed.groupby('transaction_date').size().reset_index(name='count')
+                # Clean the data
+                dates = daily_data['transaction_date'].fillna('Unknown').tolist()
+                counts = daily_data['count'].fillna(0).astype(int).tolist()
                 chart_data['daily_transactions'] = {
-                    'dates': daily_data['transaction_date'].tolist(),
-                    'counts': daily_data['count'].tolist()
+                    'dates': dates,
+                    'counts': counts
                 }
-            except:
+            except Exception as e:
+                print(f"Warning: Error processing daily data: {e}")
                 chart_data['daily_transactions'] = {
                     'dates': ['2024-01-01', '2024-01-02', '2024-01-03'],
                     'counts': [10, 15, 8]
@@ -455,25 +685,57 @@ def create_chart_data(df_analyzed: pd.DataFrame) -> Dict[str, Any]:
             }
         
     except Exception as e:
-        print(f"Warning: Error creating chart data: {e}")
-        # Fallback data
+        print(f"❌ Error creating chart data: {e}")
+        # Fallback data based on current upload
+        flagged_count = len(df_analyzed[df_analyzed['safety_level'] == 'Needs Your Attention']) if 'safety_level' in df_analyzed.columns else len(df_analyzed[df_analyzed['risk_score'] > 70])
+        
+        # Create a minimal 2-point chart for better visualization
+        from datetime import date
+        today = date.today()
+        yesterday = today - pd.Timedelta(days=1)
+        
         chart_data = {
             'fraud_trends': {
-                'months': ['Jan', 'Feb', 'Mar'],
-                'total_transactions': [100, 150, 120],
-                'flagged_transactions': [5, 8, 6]
+                'months': [yesterday.strftime('%m/%d'), today.strftime('%m/%d')],
+                'total_transactions': [0, len(df_analyzed)],
+                'flagged_transactions': [0, flagged_count],
+                'original_date_count': 1,
+                'sampled_date_count': 2,
+                'is_sampled': False,
+                'is_extended': True
             },
             'risk_distribution': {
                 'labels': ['Low Risk', 'Medium Risk', 'High Risk'],
                 'values': [80, 15, 5]
             },
             'daily_transactions': {
-                'dates': ['2024-01-01', '2024-01-02', '2024-01-03'],
-                'counts': [10, 15, 8]
+                'dates': [yesterday.strftime('%m/%d'), today.strftime('%m/%d')],
+                'counts': [0, len(df_analyzed)]
             }
         }
     
     return chart_data
+
+def clean_for_json_serialization(obj):
+    """Recursively clean data for JSON serialization, handling NaN and inf values"""
+    if isinstance(obj, dict):
+        return {key: clean_for_json_serialization(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [clean_for_json_serialization(item) for item in obj]
+    elif pd.isna(obj) or (isinstance(obj, float) and (np.isnan(obj) or np.isinf(obj))):
+        return None
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
+        return float(obj)
+    elif isinstance(obj, (np.ndarray, pd.Series)):
+        return obj.tolist()
+    elif isinstance(obj, str) and obj.lower() in ['nan', 'inf', '-inf', 'null']:
+        return None
+    else:
+        return obj
 
 def get_high_risk_transactions(df_analyzed: pd.DataFrame) -> List[Dict[str, Any]]:
     """Get high risk transactions for detailed view"""
@@ -488,11 +750,15 @@ def get_high_risk_transactions(df_analyzed: pd.DataFrame) -> List[Dict[str, Any]
         
         transactions = []
         for _, row in high_risk_sorted.iterrows():
+            # Clean each value before adding to transaction
+            amount_val = row.get('amount', 0)
+            risk_score_val = row.get('risk_score', 0)
+            
             transaction = {
                 'transaction_id': str(row.get('transaction_id', 'N/A')),
-                'amount': float(row.get('amount', 0)),
+                'amount': float(amount_val) if not (pd.isna(amount_val) or np.isnan(amount_val) or np.isinf(amount_val)) else 0.0,
                 'customer_name': str(row.get('customer_name', 'Unknown')),
-                'risk_score': int(row.get('risk_score', 0)),
+                'risk_score': int(risk_score_val) if not (pd.isna(risk_score_val) or np.isnan(risk_score_val) or np.isinf(risk_score_val)) else 0,
                 'date': str(row.get('transaction_date', 'N/A')),
                 'time': str(row.get('transaction_time', 'N/A')),
                 'anomaly_flags': str(row.get('anomaly_flags', 'None detected')),
@@ -504,6 +770,8 @@ def get_high_risk_transactions(df_analyzed: pd.DataFrame) -> List[Dict[str, Any]
                 'customer_zip_code': str(row.get('customer_zip_code', 'N/A')),
                 'customer_ip_address': str(row.get('customer_ip_address', 'N/A'))
             }
+            # Clean the entire transaction dict
+            transaction = clean_for_json_serialization(transaction)
             transactions.append(transaction)
         
         return transactions

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .upload-area { 
+            border: 2px dashed #5d87ff; 
+            border-radius: 10px; 
+            padding: 40px; 
+            text-align: center; 
+            margin: 20px 0; 
+            cursor: pointer; 
+        }
+        .upload-area:hover { background: #f0f9ff; }
+        .btn { 
+            background: #5d87ff; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 16px; 
+        }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .results { margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <h1>🛡️ FraudGuard Pro - Simple Upload Test</h1>
+    
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <h3>📊 Upload Transaction Data</h3>
+        <p>Click here to select your CSV file</p>
+        <input type="file" id="fileInput" accept=".csv" style="display: none;">
+    </div>
+    
+    <button class="btn" id="uploadBtn" disabled onclick="uploadFile()">Upload & Analyze</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        let selectedFile = null;
+        
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFile = e.target.files[0];
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            if (selectedFile) {
+                // Check file extension and MIME type more flexibly
+                const fileName = selectedFile.name.toLowerCase();
+                const validExtensions = ['.csv'];
+                const validMimeTypes = [
+                    'text/csv', 
+                    'application/csv', 
+                    'text/comma-separated-values',
+                    'application/excel',
+                    'application/vnd.ms-excel',
+                    'text/plain'  // Some systems report CSV as plain text
+                ];
+                
+                const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+                const hasValidMimeType = validMimeTypes.includes(selectedFile.type) || selectedFile.type === '';
+                
+                if (hasValidExtension && (hasValidMimeType || selectedFile.type === '')) {
+                    document.querySelector('.upload-area h3').textContent = '📄 ' + selectedFile.name;
+                    document.querySelector('.upload-area p').textContent = 'File selected - click Upload to analyze';
+                    uploadBtn.disabled = false;
+                    uploadBtn.textContent = `Upload ${selectedFile.name}`;
+                } else {
+                    alert(`Please select a valid CSV file. \nDetected type: ${selectedFile.type}\nFile extension: ${fileName.substring(fileName.lastIndexOf('.'))}`);
+                    uploadBtn.disabled = true;
+                    selectedFile = null;
+                    this.value = '';  // Clear the input
+                }
+            } else {
+                uploadBtn.disabled = true;
+                selectedFile = null;
+            }
+        });
+        
+        async function uploadFile() {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!selectedFile) {
+                alert('Please select a CSV file first');
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<p>🔍 Analyzing transactions...</p>';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                
+                const response = await fetch('/api/analyze-transactions', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="results">
+                        <h3>✅ Analysis Complete!</h3>
+                        <p><strong>Total Transactions:</strong> ${data.summary.total_transactions}</p>
+                        <p><strong>Safe Payments:</strong> ${data.summary.safe_payments}</p>
+                        <p><strong>Need Attention:</strong> ${data.summary.needs_attention}</p>
+                        <p><strong>Money at Risk:</strong> $${data.summary.money_at_risk.toFixed(2)}</p>
+                        <p><strong>Detection Accuracy:</strong> ${data.summary.detection_accuracy}%</p>
+                        
+                        <h4>Recent Transactions:</h4>
+                        <ul>
+                            ${data.recent_transactions.slice(0, 3).map(tx => 
+                                `<li>ID: ${tx.transaction_id} | Amount: $${tx.amount} | Risk: ${tx.risk_score}%</li>`
+                            ).join('')}
+                        </ul>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="results" style="background: #fee2e2; color: #991b1b;">❌ Error: ${error.message}</div>`;
+                console.error('Upload error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
