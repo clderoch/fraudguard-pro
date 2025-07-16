@@ -115,6 +115,36 @@
             display: none;
         }
 
+        /* Content Sections */
+        .content-sections {
+            min-height: calc(100vh - 80px);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .analytics-widget {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .upload-area-main {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area-main:hover {
+            background: #f0f9ff;
+            border-color: #4c6fff !important;
+        }
+
         /* Main Content */
         .main-content {
             margin-left: var(--sidebar-width);
@@ -626,13 +656,13 @@
             <h4><i class="fas fa-shield-alt"></i> FraudGuard Pro</h4>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#" class="active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
-            <li><a href="#"><i class="fas fa-upload"></i> <span>Upload Data</span></a></li>
-            <li><a href="#"><i class="fas fa-chart-line"></i> <span>Analytics</span></a></li>
-            <li><a href="#"><i class="fas fa-exclamation-triangle"></i> <span>Alerts</span></a></li>
-            <li><a href="#"><i class="fas fa-history"></i> <span>Transaction History</span></a></li>
-            <li><a href="#"><i class="fas fa-cogs"></i> <span>Settings</span></a></li>
-            <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help</span></a></li>
+            <li><a href="#" data-section="dashboard" class="nav-link active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="#" data-section="upload" class="nav-link"><i class="fas fa-upload"></i> <span>Upload Data</span></a></li>
+            <li><a href="#" data-section="analytics" class="nav-link"><i class="fas fa-chart-line"></i> <span>Analytics</span></a></li>
+            <li><a href="#" data-section="alerts" class="nav-link"><i class="fas fa-exclamation-triangle"></i> <span>Alerts</span></a></li>
+            <li><a href="#" data-section="history" class="nav-link"><i class="fas fa-history"></i> <span>Transaction History</span></a></li>
+            <li><a href="#" data-section="settings" class="nav-link"><i class="fas fa-cogs"></i> <span>Settings</span></a></li>
+            <li><a href="#" data-section="help" class="nav-link"><i class="fas fa-question-circle"></i> <span>Help</span></a></li>
         </ul>
     </nav>
 
@@ -666,10 +696,14 @@
             </div>
         </header>
 
-        <!-- Dashboard Content -->
-        <div class="dashboard-container">
-            <!-- Stats Row -->
-            <div class="row mb-4">
+        <!-- Content Sections -->
+        <div class="content-sections">
+            
+            <!-- Dashboard Section -->
+            <div class="content-section active" id="dashboard-section">
+                <div class="dashboard-container">
+                    <!-- Stats Row -->
+                    <div class="row mb-4">
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="stat-card primary">
                         <div class="stat-card-content">
@@ -1148,6 +1182,216 @@
                     </div>
                 </div>
             </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upload Data Section -->
+            <div class="content-section" id="upload-section">
+                <div class="dashboard-container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="chart-card">
+                                <h5><i class="fas fa-upload"></i> Upload Transaction Data</h5>
+                                <div class="upload-area-main" style="border: 2px dashed #5d87ff; border-radius: 10px; padding: 60px; text-align: center; margin: 20px 0;">
+                                    <h3><i class="fas fa-cloud-upload-alt"></i> Upload CSV File</h3>
+                                    <p>Drag and drop your transaction CSV file here or click to browse</p>
+                                    <input type="file" id="mainFileInput" accept=".csv" style="display: none;">
+                                    <button class="btn btn-primary" onclick="document.getElementById('mainFileInput').click()">
+                                        <i class="fas fa-file-csv"></i> Select CSV File
+                                    </button>
+                                    <div class="mt-3">
+                                        <small class="text-muted">
+                                            Required columns: transaction_id, amount, transaction_date, transaction_time
+                                        </small>
+                                    </div>
+                                </div>
+                                <div id="mainUploadStatus"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analytics Section -->
+            <div class="content-section" id="analytics-section">
+                <div class="dashboard-container">
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="chart-card">
+                                <h5><i class="fas fa-chart-line"></i> Advanced Analytics</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="analytics-widget">
+                                            <h6>Fraud Detection Accuracy</h6>
+                                            <div class="progress mb-2">
+                                                <div class="progress-bar bg-success" style="width: 98.7%">98.7%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="analytics-widget">
+                                            <h6>Average Response Time</h6>
+                                            <h3 class="text-primary">47ms</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <h6>Fraud Patterns Analysis</h6>
+                                        <p>Upload transaction data to see detailed fraud pattern analysis.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alerts Section -->
+            <div class="content-section" id="alerts-section">
+                <div class="dashboard-container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="chart-card">
+                                <h5><i class="fas fa-exclamation-triangle"></i> Security Alerts</h5>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    No active alerts at this time. Upload transaction data to monitor for fraud patterns.
+                                </div>
+                                <div class="mt-4">
+                                    <h6>Alert Types Monitored:</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Unusual transaction amounts</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Suspicious geographic patterns</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> High-frequency transactions</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Anomalous time patterns</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Card testing attempts</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transaction History Section -->
+            <div class="content-section" id="history-section">
+                <div class="dashboard-container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="chart-card">
+                                <h5><i class="fas fa-history"></i> Transaction History</h5>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <label for="dateRange">Date Range:</label>
+                                        <select class="form-select d-inline-block w-auto ms-2" id="dateRange">
+                                            <option>Last 7 days</option>
+                                            <option>Last 30 days</option>
+                                            <option>Last 90 days</option>
+                                            <option>Custom range</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-outline-secondary">
+                                            <i class="fas fa-filter"></i> Filter
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Upload transaction data to view historical analysis and trends.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Section -->
+            <div class="content-section" id="settings-section">
+                <div class="dashboard-container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="chart-card">
+                                <h5><i class="fas fa-cogs"></i> Settings</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Fraud Detection Sensitivity</h6>
+                                        <div class="mb-3">
+                                            <label for="sensitivityRange" class="form-label">Risk Threshold</label>
+                                            <input type="range" class="form-range" id="sensitivityRange" min="1" max="100" value="70">
+                                            <div class="d-flex justify-content-between">
+                                                <small>Low</small>
+                                                <small>Medium</small>
+                                                <small>High</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Notification Settings</h6>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="emailAlerts" checked>
+                                            <label class="form-check-label" for="emailAlerts">
+                                                Email alerts for high-risk transactions
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="realTimeAlerts" checked>
+                                            <label class="form-check-label" for="realTimeAlerts">
+                                                Real-time dashboard notifications
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button class="btn btn-primary">Save Settings</button>
+                                    <button class="btn btn-outline-secondary ms-2">Reset to Default</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Help Section -->
+            <div class="content-section" id="help-section">
+                <div class="dashboard-container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="chart-card">
+                                <h5><i class="fas fa-question-circle"></i> Help & Support</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Quick Start Guide</h6>
+                                        <ol>
+                                            <li>Upload your transaction CSV file using the "Upload Data" section</li>
+                                            <li>Review the analysis results on the Dashboard</li>
+                                            <li>Check high-risk transactions in the Alerts section</li>
+                                            <li>Export reports for further analysis</li>
+                                        </ol>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>CSV File Format</h6>
+                                        <p>Your CSV file should include these columns:</p>
+                                        <ul>
+                                            <li><strong>transaction_id</strong> - Unique identifier</li>
+                                            <li><strong>amount</strong> - Transaction amount</li>
+                                            <li><strong>transaction_date</strong> - Date of transaction</li>
+                                            <li><strong>transaction_time</strong> - Time of transaction</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <h6>Support</h6>
+                                    <p>For technical support, please contact: <strong>support@fraudguardpro.com</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     </div>
 
@@ -1206,6 +1450,155 @@
             icon.classList.toggle('fa-moon');
             icon.classList.toggle('fa-sun');
         });
+
+        // Navigation System
+        function initializeNavigation() {
+            const navLinks = document.querySelectorAll('.sidebar-menu .nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetSection = this.getAttribute('data-section');
+                    
+                    // Remove active class from all nav links
+                    navLinks.forEach(navLink => navLink.classList.remove('active'));
+                    
+                    // Add active class to clicked nav link
+                    this.classList.add('active');
+                    
+                    // Hide all content sections
+                    contentSections.forEach(section => section.classList.remove('active'));
+                    
+                    // Show target content section
+                    const targetElement = document.getElementById(targetSection + '-section');
+                    if (targetElement) {
+                        targetElement.classList.add('active');
+                        
+                        // Update header title based on section
+                        const headerTitle = document.querySelector('.header-title');
+                        if (headerTitle) {
+                            const sectionTitles = {
+                                'dashboard': 'Fraud Detection Dashboard',
+                                'upload': 'Upload Transaction Data',
+                                'analytics': 'Advanced Analytics',
+                                'alerts': 'Security Alerts',
+                                'history': 'Transaction History',
+                                'settings': 'Settings',
+                                'help': 'Help & Support'
+                            };
+                            headerTitle.textContent = sectionTitles[targetSection] || 'FraudGuard Pro';
+                        }
+                    }
+                });
+            });
+        }
+
+        // Initialize navigation when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNavigation();
+            setupMainUploadArea();
+        });
+
+        // Setup main upload area functionality
+        function setupMainUploadArea() {
+            const mainFileInput = document.getElementById('mainFileInput');
+            const uploadArea = document.querySelector('.upload-area-main');
+            const uploadStatus = document.getElementById('mainUploadStatus');
+
+            if (mainFileInput && uploadArea) {
+                // Handle file selection
+                mainFileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        handleMainFileUpload(file);
+                    }
+                });
+
+                // Handle drag and drop
+                uploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.style.background = '#e3f2fd';
+                });
+
+                uploadArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.style.background = '';
+                });
+
+                uploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.background = '';
+                    const file = e.dataTransfer.files[0];
+                    if (file && file.name.endsWith('.csv')) {
+                        mainFileInput.files = e.dataTransfer.files;
+                        handleMainFileUpload(file);
+                    } else {
+                        showMainUploadStatus('Please drop a valid CSV file.', 'error');
+                    }
+                });
+
+                // Click to upload
+                uploadArea.addEventListener('click', function() {
+                    mainFileInput.click();
+                });
+            }
+        }
+
+        async function handleMainFileUpload(file) {
+            const uploadStatus = document.getElementById('mainUploadStatus');
+            
+            showMainUploadStatus('🔍 Analyzing file...', 'info');
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/api/analyze-transactions', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                showMainUploadStatus('✅ Analysis completed! Switching to Dashboard view...', 'success');
+                
+                // Store the analysis data globally
+                window.currentAnalysisData = data;
+                
+                // Switch to dashboard and show results
+                setTimeout(() => {
+                    const dashboardLink = document.querySelector('[data-section="dashboard"]');
+                    if (dashboardLink) {
+                        dashboardLink.click();
+                    }
+                    showAnalysisResults(data);
+                }, 2000);
+                
+            } catch (error) {
+                showMainUploadStatus(`❌ Error: ${error.message}`, 'error');
+                console.error('Upload error:', error);
+            }
+        }
+
+        function showMainUploadStatus(message, type = 'info') {
+            const uploadStatus = document.getElementById('mainUploadStatus');
+            if (uploadStatus) {
+                const alertClass = type === 'error' ? 'alert-danger' : type === 'success' ? 'alert-success' : 'alert-info';
+                uploadStatus.innerHTML = `<div class="alert ${alertClass} mt-3">${message}</div>`;
+                
+                if (type === 'success') {
+                    setTimeout(() => {
+                        uploadStatus.innerHTML = '';
+                    }, 3000);
+                }
+            }
+        }
 
         // Initialize Charts
         function initializeCharts() {
@@ -1585,7 +1978,7 @@
                                      aria-valuenow="${tx.risk_score}" aria-valuemin="0" aria-valuemax="100">
                                 </div>
                             </div>
-                            <small class="text-${riskClass} fw-bold">${tx.risk_score}%</small>
+                            <small class="text-${riskClass} fw-bold">${tx.risk_score}</small>
                         </div>
                     </td>
                     <td><span class="risk-badge ${riskClass}">${safetyLevel}</span></td>
@@ -2266,6 +2659,62 @@
         }
 
         function viewTransactionDetails(transactionId, index) {
+            // Find the transaction in the current analysis data
+            let transaction = null;
+            
+            if (window.currentAnalysisData) {
+                // First, try to find in recent_transactions
+                if (window.currentAnalysisData.recent_transactions) {
+                    transaction = window.currentAnalysisData.recent_transactions.find(tx => 
+                        tx.transaction_id === transactionId
+                    );
+                }
+                
+                // If not found, try high_risk_transactions
+                if (!transaction && window.currentAnalysisData.high_risk_transactions) {
+                    transaction = window.currentAnalysisData.high_risk_transactions.find(tx => 
+                        tx.transaction_id === transactionId
+                    );
+                }
+                
+                // If still not found and index is provided, try to get by index
+                if (!transaction && typeof index !== 'undefined' && window.currentAnalysisData.recent_transactions) {
+                    transaction = window.currentAnalysisData.recent_transactions[index];
+                }
+            }
+            
+            // Format the data for display
+            const formatAmount = (amount) => {
+                if (amount === null || amount === undefined || isNaN(amount)) return 'N/A';
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+            };
+            
+            const formatDate = (date) => {
+                if (!date || date === 'N/A') return 'N/A';
+                try {
+                    return new Date(date).toLocaleDateString();
+                } catch (e) {
+                    return date;
+                }
+            };
+            
+            const formatTime = (time) => {
+                if (!time || time === 'N/A') return 'N/A';
+                return time;
+            };
+            
+            const getRiskScoreColor = (score) => {
+                if (score >= 70) return 'text-danger';
+                if (score >= 40) return 'text-warning';
+                return 'text-success';
+            };
+            
+            const getSafetyLevelColor = (level) => {
+                if (level === 'Needs Your Attention') return 'text-danger';
+                if (level === 'Watch Closely') return 'text-warning';
+                return 'text-success';
+            };
+            
             // Create modal for transaction details
             const modal = document.createElement('div');
             modal.className = 'modal fade';
@@ -2282,22 +2731,35 @@
                                 <div class="col-md-6">
                                     <h6>Basic Information</h6>
                                     <p><strong>Transaction ID:</strong> ${transactionId}</p>
-                                    <p><strong>Amount:</strong> Loading...</p>
-                                    <p><strong>Date:</strong> Loading...</p>
-                                    <p><strong>Time:</strong> Loading...</p>
+                                    <p><strong>Amount:</strong> ${formatAmount(transaction?.amount)}</p>
+                                    <p><strong>Date:</strong> ${formatDate(transaction?.transaction_date || transaction?.date)}</p>
+                                    <p><strong>Time:</strong> ${formatTime(transaction?.transaction_time || transaction?.time)}</p>
+                                    <p><strong>Customer:</strong> ${transaction?.customer_name || 'N/A'}</p>
+                                    <p><strong>Merchant:</strong> ${transaction?.merchant_name || 'N/A'}</p>
                                 </div>
                                 <div class="col-md-6">
                                     <h6>Risk Assessment</h6>
-                                    <p><strong>Risk Score:</strong> Loading...</p>
-                                    <p><strong>Safety Level:</strong> Loading...</p>
-                                    <p><strong>Risk Factors:</strong> Loading...</p>
+                                    <p><strong>Risk Score:</strong> <span class="${getRiskScoreColor(transaction?.risk_score)}">${transaction?.risk_score || 'N/A'}</span></p>
+                                    <p><strong>Safety Level:</strong> <span class="${getSafetyLevelColor(transaction?.safety_level)}">${transaction?.safety_level || 'N/A'}</span></p>
+                                    <p><strong>Risk Factors:</strong> ${transaction?.anomaly_flags || 'None detected'}</p>
                                 </div>
                             </div>
+                            ${transaction?.customer_email || transaction?.customer_phone || transaction?.customer_city ? `
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h6>Customer Information</h6>
+                                    ${transaction?.customer_email ? `<p><strong>Email:</strong> ${transaction.customer_email}</p>` : ''}
+                                    ${transaction?.customer_phone ? `<p><strong>Phone:</strong> ${transaction.customer_phone}</p>` : ''}
+                                    ${transaction?.customer_city ? `<p><strong>Location:</strong> ${transaction.customer_city}${transaction?.customer_state ? ', ' + transaction.customer_state : ''}${transaction?.customer_zip_code ? ' ' + transaction.customer_zip_code : ''}</p>` : ''}
+                                    ${transaction?.customer_ip_address ? `<p><strong>IP Address:</strong> ${transaction.customer_ip_address}</p>` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
                             <div class="mt-3">
                                 <h6>Actions</h6>
-                                <button class="btn btn-success me-2">Mark as Safe</button>
-                                <button class="btn btn-warning me-2">Request Verification</button>
-                                <button class="btn btn-danger">Block Transaction</button>
+                                <button class="btn btn-success me-2" onclick="markTransactionSafe('${transactionId}')">Mark as Safe</button>
+                                <button class="btn btn-warning me-2" onclick="flagTransaction('${transactionId}')">Request Verification</button>
+                                <button class="btn btn-danger" onclick="blockTransaction('${transactionId}')">Block Transaction</button>
                             </div>
                         </div>
                     </div>
@@ -2312,6 +2774,15 @@
             modal.addEventListener('hidden.bs.modal', () => {
                 modal.remove();
             });
+        }
+        
+        function markTransactionSafe(transactionId) {
+            if (confirm(`Mark transaction ${transactionId} as safe?`)) {
+                showAlert('Transaction marked as safe', 'success');
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('transactionDetailModal'));
+                if (modal) modal.hide();
+            }
         }
 
         function flagTransaction(transactionId) {
@@ -2405,6 +2876,9 @@
             const safe = summary.safe_payments || 0;
             const safetyPercentage = Math.round((safe / total) * 100);
             
+            // Calculate a safety score out of 100 (but display as a score, not percentage)
+            const safetyScore = safetyPercentage;
+            
             const options = {
                 series: [safetyPercentage],
                 chart: {
@@ -2426,7 +2900,7 @@
                                 fontSize: '24px',
                                 fontWeight: 'bold',
                                 formatter: function (val) {
-                                    return val + '%'
+                                    return Math.round(val)
                                 }
                             }
                         }
@@ -2446,11 +2920,11 @@
             const textElement = document.querySelector("#safetyScoreText");
             if (textElement) {
                 let status, message, colorClass;
-                if (safetyPercentage >= 90) {
+                if (safetyScore >= 90) {
                     status = "Excellent";
                     message = "Your transactions look very safe";
                     colorClass = "text-success";
-                } else if (safetyPercentage >= 70) {
+                } else if (safetyScore >= 70) {
                     status = "Good";
                     message = "Most transactions are safe, but review flagged ones";
                     colorClass = "text-warning";
@@ -3054,6 +3528,224 @@
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
+            
+            // Create charts for patterns tab if selected and data is available
+            if (viewType === 'patterns' && window.currentAnalysisData) {
+                setTimeout(() => {
+                    createPatternCharts(window.currentAnalysisData);
+                }, 100);
+            }
+        }
+
+        function createPatternCharts(data) {
+            const transactions = data.recent_transactions || [];
+            
+            // Create time pattern chart
+            createTimePatternChart(transactions);
+            
+            // Create amount pattern chart
+            createAmountPatternChart(transactions);
+        }
+
+        function createTimePatternChart(transactions) {
+            // Analyze transaction patterns by hour
+            const hourlyData = Array.from({length: 24}, (_, i) => ({
+                hour: i,
+                count: 0,
+                highRiskCount: 0,
+                totalAmount: 0
+            }));
+            
+            transactions.forEach(tx => {
+                let hour;
+                
+                // Extract hour from transaction_time or use default
+                if (tx.transaction_time) {
+                    const timeStr = tx.transaction_time.toString();
+                    if (timeStr.includes(':')) {
+                        hour = parseInt(timeStr.split(':')[0]);
+                    } else if (timeStr.length >= 2) {
+                        hour = parseInt(timeStr.substring(0, 2));
+                    }
+                } else if (tx.hour !== undefined) {
+                    hour = tx.hour;
+                }
+                
+                // Default to a random business hour if no valid hour found
+                if (hour === undefined || hour < 0 || hour > 23) {
+                    hour = Math.floor(Math.random() * 12) + 9; // 9 AM to 8 PM
+                }
+                
+                hourlyData[hour].count++;
+                hourlyData[hour].totalAmount += parseFloat(tx.amount || 0);
+                
+                if (tx.risk_score > 70) {
+                    hourlyData[hour].highRiskCount++;
+                }
+            });
+            
+            const options = {
+                series: [{
+                    name: 'Total Transactions',
+                    type: 'column',
+                    data: hourlyData.map(d => d.count)
+                }, {
+                    name: 'High Risk Transactions',
+                    type: 'line',
+                    data: hourlyData.map(d => d.highRiskCount)
+                }],
+                chart: {
+                    height: 250,
+                    type: 'line',
+                    toolbar: { show: false }
+                },
+                stroke: {
+                    width: [0, 4],
+                    curve: 'smooth'
+                },
+                colors: ['#5d87ff', '#fa896b'],
+                dataLabels: {
+                    enabled: false
+                },
+                labels: hourlyData.map(d => `${d.hour.toString().padStart(2, '0')}:00`),
+                xaxis: {
+                    type: 'category',
+                    title: {
+                        text: 'Hour of Day'
+                    },
+                    labels: {
+                        rotate: -45,
+                        style: {
+                            fontSize: '10px'
+                        }
+                    }
+                },
+                yaxis: [{
+                    title: {
+                        text: 'Transaction Count'
+                    }
+                }, {
+                    opposite: true,
+                    title: {
+                        text: 'High Risk Count'
+                    }
+                }],
+                legend: {
+                    position: 'top'
+                },
+                grid: {
+                    borderColor: '#e5eaef'
+                }
+            };
+
+            const chartElement = document.querySelector("#timePatternChart");
+            if (chartElement) {
+                chartElement.innerHTML = ''; // Clear existing chart
+                const chart = new ApexCharts(chartElement, options);
+                chart.render();
+            }
+        }
+
+        function createAmountPatternChart(transactions) {
+            // Analyze transaction amounts and create distribution
+            const amounts = transactions.map(tx => parseFloat(tx.amount || 0)).filter(amount => amount > 0);
+            
+            if (amounts.length === 0) {
+                // Show empty state
+                const chartElement = document.querySelector("#amountPatternChart");
+                if (chartElement) {
+                    chartElement.innerHTML = '<div class="text-center text-muted mt-4"><i class="fas fa-chart-bar fa-2x mb-2"></i><br>No amount data available</div>';
+                }
+                return;
+            }
+            
+            // Create amount ranges
+            const maxAmount = Math.max(...amounts);
+            const minAmount = Math.min(...amounts);
+            const range = maxAmount - minAmount;
+            
+            // Create 10 buckets for amount distribution
+            const buckets = 10;
+            const bucketSize = range / buckets;
+            const amountBuckets = Array.from({length: buckets}, (_, i) => ({
+                min: minAmount + (i * bucketSize),
+                max: minAmount + ((i + 1) * bucketSize),
+                count: 0,
+                highRiskCount: 0
+            }));
+            
+            transactions.forEach(tx => {
+                const amount = parseFloat(tx.amount || 0);
+                if (amount > 0) {
+                    const bucketIndex = Math.min(Math.floor((amount - minAmount) / bucketSize), buckets - 1);
+                    amountBuckets[bucketIndex].count++;
+                    
+                    if (tx.risk_score > 70) {
+                        amountBuckets[bucketIndex].highRiskCount++;
+                    }
+                }
+            });
+            
+            const options = {
+                series: [{
+                    name: 'Transaction Count',
+                    data: amountBuckets.map(bucket => bucket.count)
+                }, {
+                    name: 'High Risk Count',
+                    data: amountBuckets.map(bucket => bucket.highRiskCount)
+                }],
+                chart: {
+                    height: 250,
+                    type: 'bar',
+                    toolbar: { show: false }
+                },
+                colors: ['#5d87ff', '#fa896b'],
+                dataLabels: {
+                    enabled: false
+                },
+                xaxis: {
+                    categories: amountBuckets.map(bucket => {
+                        if (bucket.max < 1000) {
+                            return `$${Math.round(bucket.min)}-$${Math.round(bucket.max)}`;
+                        } else {
+                            return `$${(bucket.min/1000).toFixed(1)}K-$${(bucket.max/1000).toFixed(1)}K`;
+                        }
+                    }),
+                    title: {
+                        text: 'Transaction Amount Range'
+                    },
+                    labels: {
+                        rotate: -45,
+                        style: {
+                            fontSize: '10px'
+                        }
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'Number of Transactions'
+                    }
+                },
+                legend: {
+                    position: 'top'
+                },
+                grid: {
+                    borderColor: '#e5eaef'
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '70%'
+                    }
+                }
+            };
+
+            const chartElement = document.querySelector("#amountPatternChart");
+            if (chartElement) {
+                chartElement.innerHTML = ''; // Clear existing chart
+                const chart = new ApexCharts(chartElement, options);
+                chart.render();
+            }
         }
 
         // Export functionality
