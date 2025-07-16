@@ -1,5 +1,6 @@
-# Enhanced SMB Transaction Data Generator with Modern Online Business Types
-# Save as: enhanced_smb_transaction_generator.py
+# Enhanced Universal Transaction Data Generator for All Industries
+# Comprehensive business transaction simulator for fraud detection systems
+# Supports 100+ business types across all major industry verticals
 
 import pandas as pd
 import numpy as np
@@ -10,35 +11,99 @@ import json
 from faker import Faker
 from faker.providers import credit_card, person, company, address
 import hashlib
+import time
 
 # Set random seed for reproducibility
 np.random.seed(42)
 random.seed(42)
 
 # Initialize Faker with multiple locales for international transactions
-fake = Faker('en_US')
+fake = Faker(['en_US', 'en_GB', 'de_DE', 'fr_FR', 'es_ES', 'ja_JP'])
 fake.add_provider(credit_card)
 fake.add_provider(person)
 fake.add_provider(company)
 fake.add_provider(address)
 
-class EnhancedTransactionGenerator:
+class UniversalTransactionGenerator:
     def __init__(self):
+        # Global currency rates (updated regularly in real implementation)
         self.currency_rates = {
-            'USD': 1.0, 'EUR': 0.85, 'GBP': 0.73, 'CAD': 1.25, 
-            'AUD': 1.35, 'JPY': 110.0, 'CNY': 6.5, 'INR': 75.0
+            'USD': 1.0, 'EUR': 0.85, 'GBP': 0.73, 'CAD': 1.25, 'AUD': 1.35, 
+            'JPY': 110.0, 'CNY': 6.5, 'INR': 75.0, 'BRL': 5.2, 'MXN': 18.0,
+            'CHF': 0.92, 'SEK': 8.5, 'NOK': 8.7, 'DKK': 6.3, 'PLN': 3.9,
+            'CZK': 21.5, 'HUF': 295.0, 'RUB': 74.0, 'TRY': 8.5, 'ZAR': 14.5
         }
         
+        # Enhanced device ecosystem
         self.device_types = {
-            'mobile': {'ios': 0.55, 'android': 0.45},
-            'desktop': {'windows': 0.7, 'mac': 0.25, 'linux': 0.05},
-            'tablet': {'ipad': 0.65, 'android': 0.35}
+            'mobile': {
+                'ios': {'weight': 0.52, 'versions': ['iOS 16', 'iOS 17', 'iOS 18']},
+                'android': {'weight': 0.48, 'versions': ['Android 13', 'Android 14', 'Android 15']}
+            },
+            'desktop': {
+                'windows': {'weight': 0.68, 'versions': ['Windows 10', 'Windows 11']},
+                'mac': {'weight': 0.22, 'versions': ['macOS Ventura', 'macOS Sonoma', 'macOS Sequoia']},
+                'linux': {'weight': 0.08, 'versions': ['Ubuntu', 'Fedora', 'Debian']},
+                'chromeos': {'weight': 0.02, 'versions': ['ChromeOS']}
+            },
+            'tablet': {
+                'ipad': {'weight': 0.65, 'versions': ['iPadOS 16', 'iPadOS 17']},
+                'android': {'weight': 0.30, 'versions': ['Android Tablet']},
+                'windows': {'weight': 0.05, 'versions': ['Windows Tablet']}
+            },
+            'smart_tv': {
+                'roku': {'weight': 0.35}, 'apple_tv': {'weight': 0.25}, 
+                'fire_tv': {'weight': 0.20}, 'google_tv': {'weight': 0.20}
+            },
+            'gaming_console': {
+                'playstation': {'weight': 0.40}, 'xbox': {'weight': 0.35}, 
+                'nintendo': {'weight': 0.25}
+            },
+            'wearable': {
+                'apple_watch': {'weight': 0.55}, 'android_wear': {'weight': 0.25},
+                'fitbit': {'weight': 0.15}, 'garmin': {'weight': 0.05}
+            }
         }
         
-        self.marketing_channels = [
-            'organic_search', 'paid_search', 'social_media', 'email', 
-            'affiliate', 'direct', 'referral', 'display_ads', 'influencer'
-        ]
+        # Global timezone mapping
+        self.timezones = {
+            'US': ['EST', 'CST', 'MST', 'PST', 'AKST', 'HST'],
+            'CA': ['EST', 'CST', 'MST', 'PST'],
+            'GB': ['GMT'], 'DE': ['CET'], 'FR': ['CET'], 'ES': ['CET'],
+            'JP': ['JST'], 'AU': ['AEST', 'AWST'], 'BR': ['BRT'],
+            'IN': ['IST'], 'CN': ['CST'], 'RU': ['MSK'],
+            'ZA': ['SAST'], 'MX': ['CST', 'MST', 'PST']
+        }
+        
+        # Enhanced marketing channels with digital attribution
+        self.marketing_channels = {
+            'organic_search': {'weight': 0.25, 'cost_per_acquisition': (0, 5)},
+            'paid_search': {'weight': 0.18, 'cost_per_acquisition': (15, 45)},
+            'social_media_organic': {'weight': 0.15, 'cost_per_acquisition': (0, 3)},
+            'social_media_paid': {'weight': 0.12, 'cost_per_acquisition': (8, 25)},
+            'email_marketing': {'weight': 0.08, 'cost_per_acquisition': (2, 8)},
+            'direct_traffic': {'weight': 0.07, 'cost_per_acquisition': (0, 1)},
+            'referral': {'weight': 0.06, 'cost_per_acquisition': (5, 15)},
+            'affiliate': {'weight': 0.04, 'cost_per_acquisition': (20, 60)},
+            'influencer': {'weight': 0.03, 'cost_per_acquisition': (25, 100)},
+            'content_marketing': {'weight': 0.02, 'cost_per_acquisition': (10, 30)}
+        }
+        
+        # Industry vertical mappings
+        self.industry_verticals = {
+            'technology': ['saas_b2b', 'saas_b2c', 'cloud_hosting', 'cybersecurity', 'ai_platform'],
+            'ecommerce': ['fashion_retail', 'electronics_store', 'home_goods', 'beauty_cosmetics'],
+            'healthcare': ['telehealth', 'medical_devices', 'pharmacy_online', 'mental_health'],
+            'finance': ['fintech_app', 'crypto_exchange', 'investment_platform', 'insurance_online'],
+            'education': ['online_courses', 'tutoring_platform', 'certification_provider'],
+            'entertainment': ['streaming_service', 'gaming_platform', 'music_streaming'],
+            'travel': ['booking_platform', 'airline', 'hotel_chain', 'rental_cars'],
+            'food': ['food_delivery', 'meal_kit_subscription', 'restaurant_pos', 'grocery_delivery'],
+            'real_estate': ['property_platform', 'rental_marketplace', 'mortgage_broker'],
+            'automotive': ['car_sharing', 'auto_parts', 'ev_charging', 'ride_hailing'],
+            'professional_services': ['legal_services', 'accounting_software', 'hr_platform'],
+            'non_profit': ['donation_platform', 'crowdfunding', 'charity_marketplace']
+        }
 
     def generate_customer_profile(self, business_type):
         """Generate enhanced customer profile with behavioral attributes"""
@@ -106,8 +171,691 @@ class EnhancedTransactionGenerator:
     def generate_enhanced_transaction_data(self, num_transactions=2000, business_type='saas_b2b'):
         """Generate realistic transaction data for modern online businesses"""
         
-        # Enhanced business patterns for modern online businesses
-        business_patterns = {
+    def get_comprehensive_business_patterns(self):
+        """Get business patterns for all major industry verticals"""
+        return {
+            # =================================================================
+            # TECHNOLOGY & SOFTWARE
+            # =================================================================
+            'saas_b2b': {
+                'name': 'CloudSync Enterprise',
+                'category': 'B2B SaaS Platform',
+                'industry': 'Technology',
+                'subscription_tiers': {
+                    'starter': {'price': 49, 'users': 10, 'features': 'basic'},
+                    'professional': {'price': 149, 'users': 50, 'features': 'advanced'},
+                    'business': {'price': 399, 'users': 200, 'features': 'premium'},
+                    'enterprise': {'price': 1299, 'users': 'unlimited', 'features': 'custom'}
+                },
+                'billing_cycles': {'monthly': 0.5, 'annual': 0.4, 'quarterly': 0.1},
+                'transaction_types': ['new_subscription', 'renewal', 'upgrade', 'downgrade', 'addon', 'overage'],
+                'peak_hours': [9, 10, 11, 13, 14, 15, 16],
+                'peak_days': [1, 2, 3, 4],  # Tuesday through Friday
+                'seasonality': {'Q1': 1.2, 'Q2': 0.9, 'Q3': 0.8, 'Q4': 1.1},
+                'churn_rate': 0.05,
+                'trial_conversion': 0.18,
+                'international_percentage': 0.35
+            },
+            
+            'cybersecurity_platform': {
+                'name': 'SecureShield Pro',
+                'category': 'Cybersecurity Solutions',
+                'industry': 'Technology',
+                'service_tiers': {
+                    'endpoint_protection': {'price': 15, 'per': 'device'},
+                    'network_security': {'price': 299, 'per': 'month'},
+                    'threat_intelligence': {'price': 999, 'per': 'month'},
+                    'managed_security': {'price': 2999, 'per': 'month'}
+                },
+                'contract_lengths': {'monthly': 0.3, 'annual': 0.6, 'multi_year': 0.1},
+                'transaction_types': ['license_purchase', 'support_renewal', 'consulting', 'incident_response'],
+                'peak_hours': [8, 9, 10, 13, 14, 15],
+                'enterprise_percentage': 0.7,
+                'compliance_premium': 1.3
+            },
+
+            # =================================================================
+            # E-COMMERCE & RETAIL
+            # =================================================================
+            'fashion_ecommerce': {
+                'name': 'StyleHub Fashion',
+                'category': 'Fashion E-commerce',
+                'industry': 'Retail',
+                'product_categories': {
+                    'womens_clothing': (25, 150),
+                    'mens_clothing': (30, 120),
+                    'shoes': (40, 200),
+                    'accessories': (15, 80),
+                    'luxury_items': (200, 1500),
+                    'sale_items': (10, 50)
+                },
+                'seasonal_patterns': {
+                    'spring': 1.1, 'summer': 0.9, 'fall': 1.2, 'winter': 1.3,
+                    'black_friday': 2.5, 'cyber_monday': 2.2, 'holiday': 1.8
+                },
+                'return_rate': 0.25,
+                'cart_abandonment': 0.68,
+                'international_shipping': 0.15,
+                'mobile_percentage': 0.72
+            },
+            
+            'electronics_marketplace': {
+                'name': 'TechMart Global',
+                'category': 'Electronics Marketplace',
+                'industry': 'Retail',
+                'product_categories': {
+                    'smartphones': (200, 1200),
+                    'laptops': (500, 3000),
+                    'gaming': (50, 600),
+                    'smart_home': (25, 300),
+                    'audio': (30, 500),
+                    'accessories': (10, 100)
+                },
+                'warranty_options': {
+                    'standard': 0,
+                    'extended_1_year': 99,
+                    'extended_2_year': 179,
+                    'premium_support': 299
+                },
+                'financing_options': ['full_payment', 'installment_3', 'installment_6', 'installment_12'],
+                'peak_hours': [12, 13, 19, 20, 21],
+                'peak_days': [0, 6]  # Weekends
+            },
+
+            # =================================================================
+            # HEALTHCARE & MEDICAL
+            # =================================================================
+            'telehealth_platform': {
+                'name': 'HealthConnect Virtual',
+                'category': 'Telehealth Services',
+                'industry': 'Healthcare',
+                'service_types': {
+                    'general_consultation': (75, 150),
+                    'specialist_consultation': (150, 300),
+                    'therapy_session': (80, 200),
+                    'prescription_consultation': (25, 60),
+                    'mental_health_session': (90, 250),
+                    'urgent_care': (100, 200)
+                },
+                'insurance_coverage': 0.65,
+                'appointment_types': ['immediate', 'same_day', 'scheduled', 'follow_up'],
+                'peak_hours': [8, 9, 17, 18, 19],
+                'no_show_rate': 0.08,
+                'prescription_rate': 0.4
+            },
+            
+            'medical_device_sales': {
+                'name': 'MedTech Solutions',
+                'category': 'Medical Device Sales',
+                'industry': 'Healthcare',
+                'device_categories': {
+                    'diagnostic_equipment': (5000, 50000),
+                    'surgical_instruments': (500, 15000),
+                    'monitoring_devices': (1000, 10000),
+                    'therapeutic_equipment': (2000, 25000),
+                    'consumable_supplies': (50, 500)
+                },
+                'customer_types': {
+                    'hospital': 0.4,
+                    'clinic': 0.35,
+                    'laboratory': 0.15,
+                    'individual_practitioner': 0.1
+                },
+                'payment_terms': ['net_30', 'net_60', 'net_90', 'immediate'],
+                'regulatory_compliance': True
+            },
+
+            # =================================================================
+            # FINANCIAL SERVICES
+            # =================================================================
+            'fintech_payment_app': {
+                'name': 'PayFlow Mobile',
+                'category': 'Digital Payment Platform',
+                'industry': 'Financial Services',
+                'transaction_types': {
+                    'peer_to_peer': (5, 500),
+                    'bill_payment': (25, 2000),
+                    'merchant_payment': (10, 1000),
+                    'investment_transfer': (100, 10000),
+                    'international_transfer': (50, 5000)
+                },
+                'fee_structure': {
+                    'standard_transfer': 0,
+                    'instant_transfer': 1.75,
+                    'international': 0.02,
+                    'currency_conversion': 0.015
+                },
+                'verification_levels': ['basic', 'verified', 'premium'],
+                'daily_limits': {'basic': 500, 'verified': 2500, 'premium': 10000},
+                'fraud_monitoring': True
+            },
+            
+            'investment_platform': {
+                'name': 'WealthBuilder Pro',
+                'category': 'Investment Platform',
+                'industry': 'Financial Services',
+                'investment_types': {
+                    'stocks': (100, 50000),
+                    'etfs': (500, 25000),
+                    'mutual_funds': (1000, 100000),
+                    'bonds': (1000, 500000),
+                    'crypto': (50, 10000),
+                    'options': (100, 25000)
+                },
+                'account_types': ['individual', 'joint', 'ira', 'roth_ira', 'business'],
+                'fee_structure': {
+                    'commission_per_trade': 0,
+                    'management_fee': 0.0075,  # 0.75% annually
+                    'expense_ratio': 0.0025
+                },
+                'automated_investing': 0.45
+            },
+
+            # =================================================================
+            # EDUCATION & LEARNING
+            # =================================================================
+            'online_education_platform': {
+                'name': 'LearnMaster Academy',
+                'category': 'Online Education',
+                'industry': 'Education',
+                'course_categories': {
+                    'technology': (29, 299),
+                    'business': (39, 399),
+                    'creative_arts': (25, 199),
+                    'language_learning': (15, 149),
+                    'professional_certification': (199, 999),
+                    'bootcamp_programs': (2999, 15999)
+                },
+                'learning_formats': {
+                    'self_paced': 0.6,
+                    'instructor_led': 0.25,
+                    'cohort_based': 0.15
+                },
+                'subscription_model': {
+                    'monthly_unlimited': 39.99,
+                    'annual_unlimited': 299.99,
+                    'lifetime_access': 599.99
+                },
+                'completion_rate': 0.32,
+                'certificate_fee': 49
+            },
+            
+            'tutoring_marketplace': {
+                'name': 'TutorConnect Pro',
+                'category': 'Online Tutoring',
+                'industry': 'Education',
+                'subject_areas': {
+                    'mathematics': (25, 80),
+                    'science': (30, 85),
+                    'languages': (20, 70),
+                    'test_prep': (40, 120),
+                    'computer_science': (35, 100),
+                    'business': (30, 90)
+                },
+                'session_types': ['individual', 'group', 'intensive'],
+                'platform_commission': 0.2,
+                'tutor_rating_system': True,
+                'peak_hours': [16, 17, 18, 19, 20]  # After school hours
+            },
+
+            # =================================================================
+            # ENTERTAINMENT & MEDIA
+            # =================================================================
+            'streaming_entertainment': {
+                'name': 'StreamVibe Plus',
+                'category': 'Video Streaming',
+                'industry': 'Entertainment',
+                'subscription_tiers': {
+                    'basic': {'price': 8.99, 'quality': 'SD', 'screens': 1, 'ads': True},
+                    'standard': {'price': 13.99, 'quality': 'HD', 'screens': 2, 'ads': False},
+                    'premium': {'price': 17.99, 'quality': '4K', 'screens': 4, 'ads': False},
+                    'family': {'price': 22.99, 'quality': '4K', 'screens': 6, 'ads': False}
+                },
+                'content_types': ['movies', 'tv_series', 'documentaries', 'kids', 'sports', 'originals'],
+                'viewing_patterns': {
+                    'peak_evening': [19, 20, 21, 22],
+                    'weekend_binge': [14, 15, 16, 17, 18],
+                    'mobile_commute': [7, 8, 17, 18]
+                },
+                'churn_rate': 0.06,
+                'family_sharing': 0.3
+            },
+            
+            'gaming_platform_advanced': {
+                'name': 'GameVerse Ultimate',
+                'category': 'Gaming Platform',
+                'industry': 'Entertainment',
+                'transaction_categories': {
+                    'game_purchase': (9.99, 69.99),
+                    'dlc_content': (4.99, 29.99),
+                    'season_pass': (19.99, 49.99),
+                    'virtual_currency_small': (0.99, 9.99),
+                    'virtual_currency_medium': (19.99, 49.99),
+                    'virtual_currency_large': (99.99, 199.99),
+                    'premium_subscription': (9.99, 19.99),
+                    'tournament_entry': (5.00, 50.00)
+                },
+                'platforms': ['PC', 'PlayStation', 'Xbox', 'Nintendo', 'Mobile'],
+                'payment_methods': ['card', 'paypal', 'crypto', 'gift_card', 'mobile_billing'],
+                'whale_percentage': 0.03,  # 3% high spenders
+                'esports_integration': True
+            },
+
+            # =================================================================
+            # TRAVEL & HOSPITALITY
+            # =================================================================
+            'travel_booking_comprehensive': {
+                'name': 'WanderBook Global',
+                'category': 'Online Travel Agency',
+                'industry': 'Travel',
+                'booking_types': {
+                    'flights': (150, 2500),
+                    'hotels': (80, 800),
+                    'vacation_packages': (500, 8000),
+                    'car_rentals': (30, 200),
+                    'activities_tours': (25, 400),
+                    'travel_insurance': (25, 300),
+                    'cruise_bookings': (800, 5000)
+                },
+                'booking_windows': {
+                    'last_minute': (1, 7),
+                    'standard': (8, 60),
+                    'advance': (61, 365)
+                },
+                'traveler_types': {
+                    'business': 0.25,
+                    'leisure': 0.55,
+                    'family': 0.15,
+                    'group': 0.05
+                },
+                'seasonal_multipliers': {
+                    'peak_summer': 1.4,
+                    'holiday_season': 1.6,
+                    'off_season': 0.7
+                }
+            },
+            
+            'hotel_chain_pos': {
+                'name': 'LuxStay Hotels',
+                'category': 'Hotel Chain',
+                'industry': 'Hospitality',
+                'property_types': {
+                    'budget': (89, 149),
+                    'mid_scale': (129, 249),
+                    'upscale': (199, 399),
+                    'luxury': (399, 999),
+                    'resort': (299, 1299)
+                },
+                'revenue_streams': {
+                    'room_revenue': 0.65,
+                    'food_beverage': 0.20,
+                    'spa_services': 0.08,
+                    'business_center': 0.04,
+                    'parking_fees': 0.03
+                },
+                'loyalty_program': True,
+                'group_booking_percentage': 0.15
+            },
+
+            # =================================================================
+            # FOOD & RESTAURANT
+            # =================================================================
+            'food_delivery_advanced': {
+                'name': 'QuickEats Pro',
+                'category': 'Food Delivery Platform',
+                'industry': 'Food Service',
+                'order_categories': {
+                    'fast_food': (12, 35),
+                    'casual_dining': (25, 80),
+                    'fine_dining': (50, 150),
+                    'groceries': (30, 200),
+                    'alcohol_delivery': (15, 100),
+                    'convenience_store': (5, 40),
+                    'catering': (100, 500)
+                },
+                'delivery_zones': {
+                    'urban_core': {'fee': (2.99, 4.99), 'time': (15, 30)},
+                    'suburban': {'fee': (3.99, 6.99), 'time': (25, 45)},
+                    'extended': {'fee': (5.99, 8.99), 'time': (35, 60)}
+                },
+                'peak_demand_multiplier': {
+                    'lunch_rush': 1.3,
+                    'dinner_rush': 1.5,
+                    'late_night': 1.2,
+                    'weather_surge': 1.8
+                },
+                'subscription_service': {'monthly': 9.99, 'annual': 96.99}
+            },
+            
+            'restaurant_pos_system': {
+                'name': 'RestaurantHub POS',
+                'category': 'Restaurant Point of Sale',
+                'industry': 'Food Service',
+                'restaurant_types': {
+                    'quick_service': (8, 25),
+                    'fast_casual': (12, 35),
+                    'casual_dining': (20, 60),
+                    'fine_dining': (40, 150),
+                    'bar_tavern': (10, 45)
+                },
+                'payment_splits': {
+                    'single_payment': 0.75,
+                    'split_payment': 0.20,
+                    'group_payment': 0.05
+                },
+                'tip_percentages': [0.15, 0.18, 0.20, 0.22, 0.25],
+                'loyalty_integration': True
+            },
+
+            # =================================================================
+            # REAL ESTATE & PROPERTY
+            # =================================================================
+            'property_marketplace': {
+                'name': 'PropertyFinder Pro',
+                'category': 'Real Estate Platform',
+                'industry': 'Real Estate',
+                'transaction_types': {
+                    'property_listing': (99, 499),
+                    'premium_listing': (299, 999),
+                    'lead_generation': (25, 150),
+                    'market_analysis': (199, 799),
+                    'closing_services': (500, 2500)
+                },
+                'property_types': ['residential', 'commercial', 'rental', 'land'],
+                'commission_structure': {
+                    'listing_fee': 0.025,
+                    'transaction_fee': 0.01,
+                    'premium_services': 'flat_fee'
+                },
+                'geographic_coverage': 'national'
+            },
+            
+            'vacation_rental_platform': {
+                'name': 'StayAnywhere Rentals',
+                'category': 'Vacation Rental Platform',
+                'industry': 'Real Estate',
+                'property_categories': {
+                    'entire_home': (80, 500),
+                    'private_room': (40, 150),
+                    'shared_room': (25, 80),
+                    'luxury_villa': (300, 2000),
+                    'cabin_retreat': (100, 400),
+                    'urban_apartment': (60, 250)
+                },
+                'booking_patterns': {
+                    'weekend_getaway': 0.4,
+                    'week_vacation': 0.35,
+                    'business_travel': 0.15,
+                    'extended_stay': 0.1
+                },
+                'host_payout': 0.97,  # 3% platform fee
+                'cleaning_fees': (25, 150)
+            },
+
+            # =================================================================
+            # AUTOMOTIVE & TRANSPORTATION
+            # =================================================================
+            'ride_sharing_platform': {
+                'name': 'RideConnect Pro',
+                'category': 'Ride Sharing',
+                'industry': 'Transportation',
+                'ride_types': {
+                    'standard': (8, 25),
+                    'premium': (12, 40),
+                    'xl_group': (15, 50),
+                    'luxury': (25, 80),
+                    'pool_shared': (5, 15)
+                },
+                'surge_pricing': {
+                    'normal': 1.0,
+                    'high_demand': 1.5,
+                    'peak_hours': 2.0,
+                    'special_events': 3.0
+                },
+                'driver_payout': 0.75,
+                'tips_enabled': True,
+                'safety_features': True
+            },
+            
+            'auto_parts_ecommerce': {
+                'name': 'AutoParts Direct',
+                'category': 'Automotive E-commerce',
+                'industry': 'Automotive',
+                'part_categories': {
+                    'engine_parts': (25, 500),
+                    'brake_components': (30, 200),
+                    'electrical': (15, 150),
+                    'suspension': (50, 400),
+                    'body_parts': (40, 800),
+                    'accessories': (10, 100)
+                },
+                'vehicle_compatibility': True,
+                'professional_installation': 0.3,
+                'warranty_options': ['30_day', '90_day', '1_year', 'lifetime'],
+                'b2b_percentage': 0.4
+            },
+
+            # =================================================================
+            # PROFESSIONAL SERVICES
+            # =================================================================
+            'legal_services_platform': {
+                'name': 'LegalConnect Pro',
+                'category': 'Legal Services',
+                'industry': 'Professional Services',
+                'service_types': {
+                    'consultation': (150, 400),
+                    'document_preparation': (200, 800),
+                    'contract_review': (300, 1200),
+                    'litigation_support': (500, 2000),
+                    'business_formation': (400, 1500),
+                    'intellectual_property': (800, 3000)
+                },
+                'attorney_specializations': [
+                    'corporate', 'family', 'criminal', 'personal_injury', 
+                    'real_estate', 'immigration', 'tax', 'intellectual_property'
+                ],
+                'billing_methods': ['hourly', 'flat_fee', 'contingency', 'retainer'],
+                'client_types': ['individual', 'small_business', 'enterprise']
+            },
+            
+            'accounting_software_saas': {
+                'name': 'BookKeeper Pro',
+                'category': 'Accounting Software',
+                'industry': 'Professional Services',
+                'subscription_tiers': {
+                    'freelancer': {'price': 15, 'features': 'basic_invoicing'},
+                    'small_business': {'price': 45, 'features': 'full_accounting'},
+                    'growing_business': {'price': 85, 'features': 'advanced_reports'},
+                    'enterprise': {'price': 180, 'features': 'multi_entity'}
+                },
+                'add_on_services': {
+                    'payroll': 40,
+                    'tax_preparation': 120,
+                    'bookkeeping_service': 200,
+                    'financial_advisory': 300
+                },
+                'integration_ecosystem': True,
+                'mobile_app': True
+            },
+
+            # =================================================================
+            # NON-PROFIT & SOCIAL IMPACT
+            # =================================================================
+            'donation_platform': {
+                'name': 'GiveHope Foundation',
+                'category': 'Donation Platform',
+                'industry': 'Non-Profit',
+                'donation_types': {
+                    'one_time': (5, 5000),
+                    'monthly_recurring': (10, 500),
+                    'annual_recurring': (100, 10000),
+                    'memorial_donation': (25, 2000),
+                    'fundraiser_campaign': (20, 1000)
+                },
+                'cause_categories': [
+                    'education', 'healthcare', 'environment', 'poverty', 
+                    'disaster_relief', 'animal_welfare', 'arts_culture'
+                ],
+                'tax_deduction_eligible': True,
+                'transparent_impact_tracking': True,
+                'processing_fee': 0.029
+            },
+            
+            'crowdfunding_platform': {
+                'name': 'FundMyIdea',
+                'category': 'Crowdfunding Platform',
+                'industry': 'Non-Profit',
+                'campaign_types': {
+                    'creative_projects': (500, 50000),
+                    'technology_innovation': (10000, 500000),
+                    'community_projects': (1000, 25000),
+                    'personal_causes': (500, 10000),
+                    'business_startup': (5000, 100000)
+                },
+                'funding_models': ['all_or_nothing', 'flexible_funding'],
+                'platform_fee': 0.05,
+                'payment_processing_fee': 0.029,
+                'backer_rewards': True
+            }
+        }
+    
+    def generate_customer_profile(self, business_type, region='US'):
+        """Generate enhanced customer profile with global support"""
+        customer_id = f"CUST_{fake.random_number(digits=8, fix_len=True)}"
+        
+        # Regional customer generation
+        if region in self.timezones:
+            timezone = random.choice(self.timezones[region])
+            country = region
+        else:
+            timezone = 'EST'
+            country = 'US'
+        
+        # Enhanced customer segments based on business type and industry patterns
+        business_patterns = self.get_comprehensive_business_patterns()
+        pattern = business_patterns.get(business_type, {})
+        industry = pattern.get('industry', 'Technology')
+        
+        # Industry-specific customer segmentation
+        if industry == 'Technology':
+            segments = ['startup', 'smb', 'enterprise', 'individual_developer']
+            clv_ranges = {
+                'startup': (1000, 10000), 'smb': (5000, 50000), 
+                'enterprise': (50000, 500000), 'individual_developer': (100, 2000)
+            }
+        elif industry == 'Healthcare':
+            segments = ['individual_patient', 'family_plan', 'corporate_wellness', 'medical_professional']
+            clv_ranges = {
+                'individual_patient': (200, 2000), 'family_plan': (500, 5000),
+                'corporate_wellness': (5000, 50000), 'medical_professional': (1000, 15000)
+            }
+        elif industry == 'Education':
+            segments = ['student', 'professional', 'corporate_training', 'academic_institution']
+            clv_ranges = {
+                'student': (50, 500), 'professional': (200, 2000),
+                'corporate_training': (2000, 25000), 'academic_institution': (5000, 100000)
+            }
+        else:
+            # Generic segments for other industries
+            segments = ['new_customer', 'regular_customer', 'vip_customer', 'enterprise_customer']
+            clv_ranges = {
+                'new_customer': (100, 1000), 'regular_customer': (1000, 5000),
+                'vip_customer': (5000, 25000), 'enterprise_customer': (25000, 250000)
+            }
+        
+        segment = random.choice(segments)
+        clv_range = clv_ranges.get(segment, (100, 1000))
+        clv = random.uniform(*clv_range)
+        
+        # Enhanced device preferences based on industry
+        if industry in ['Gaming', 'Entertainment']:
+            device_weights = [0.45, 0.35, 0.15, 0.03, 0.02]  # More gaming devices
+            device_types = ['mobile', 'desktop', 'gaming_console', 'smart_tv', 'tablet']
+        elif industry == 'Professional Services':
+            device_weights = [0.25, 0.65, 0.08, 0.02]  # More desktop usage
+            device_types = ['mobile', 'desktop', 'tablet', 'wearable']
+        else:
+            device_weights = [0.6, 0.3, 0.08, 0.02]  # Standard distribution
+            device_types = ['mobile', 'desktop', 'tablet', 'wearable']
+        
+        preferred_device = random.choices(device_types, weights=device_weights)[0]
+        
+        # Marketing channel attribution
+        channel_data = random.choices(
+            list(self.marketing_channels.keys()),
+            weights=[channel['weight'] for channel in self.marketing_channels.values()]
+        )[0]
+        
+        acquisition_cost = random.uniform(*self.marketing_channels[channel_data]['cost_per_acquisition'])
+        
+        return {
+            'customer_id': customer_id,
+            'name': fake.name(),
+            'email': fake.email(),
+            'phone': fake.phone_number(),
+            'segment': segment,
+            'industry_segment': industry,
+            'clv': clv,
+            'acquisition_cost': acquisition_cost,
+            'acquisition_date': fake.date_between(start_date='-3y', end_date='today'),
+            'acquisition_channel': channel_data,
+            'preferred_device': preferred_device,
+            'country': country,
+            'city': fake.city(),
+            'state': fake.state() if country == 'US' else fake.city(),
+            'zip_code': fake.zipcode() if country == 'US' else fake.postcode(),
+            'timezone': timezone,
+            'language': self._get_language_for_region(region),
+            'payment_methods': self._get_payment_methods_for_region(region),
+            'address': fake.address(),
+            'ip_address': fake.ipv4_public(),
+            'user_agent': self._generate_user_agent(preferred_device),
+            'social_media_presence': random.choice([True, False]),
+            'marketing_consent': random.choice([True, False])
+        }
+    
+    def _get_language_for_region(self, region):
+        """Get appropriate language for region"""
+        language_map = {
+            'US': 'en', 'CA': random.choice(['en', 'fr']), 'GB': 'en',
+            'DE': 'de', 'FR': 'fr', 'ES': 'es', 'JP': 'ja',
+            'BR': 'pt', 'IN': random.choice(['en', 'hi']), 'CN': 'zh'
+        }
+        return language_map.get(region, 'en')
+    
+    def _get_payment_methods_for_region(self, region):
+        """Get region-appropriate payment methods"""
+        base_methods = ['card', 'paypal']
+        
+        regional_methods = {
+            'US': ['apple_pay', 'google_pay', 'venmo', 'zelle'],
+            'EU': ['sepa', 'ideal', 'sofort', 'giropay'],
+            'JP': ['konbini', 'bank_transfer'],
+            'CN': ['alipay', 'wechat_pay'],
+            'IN': ['upi', 'paytm', 'razorpay'],
+            'BR': ['pix', 'boleto'],
+            'CA': ['interac', 'apple_pay']
+        }
+        
+        methods = base_methods + regional_methods.get(region, ['bank_transfer'])
+        return random.sample(methods, k=random.randint(2, min(4, len(methods))))
+    
+    def _generate_user_agent(self, device_type):
+        """Generate realistic user agent string"""
+        agents = {
+            'mobile': [
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+                'Mozilla/5.0 (Linux; Android 14; SM-G998B) AppleWebKit/537.36'
+            ],
+            'desktop': [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+            ],
+            'tablet': [
+                'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15'
+            ]
+        }
+        return random.choice(agents.get(device_type, agents['desktop']))
             # SUBSCRIPTION BUSINESSES
             'saas_b2b': {
                 'name': 'CloudSync Pro',
@@ -1347,7 +2095,7 @@ class EnhancedTransactionGenerator:
 # Example usage function
 def generate_modern_business_data(business_type='saas_b2b', num_transactions=1000):
     """Generate transaction data for a specific modern business type"""
-    generator = EnhancedTransactionGenerator()
+    generator = UniversalTransactionGenerator()
     return generator.generate_enhanced_transaction_data(num_transactions, business_type)
 
 # Main execution
