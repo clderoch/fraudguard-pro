@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudGuard Pro - AI-Powered Fraud Detection</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- ApexCharts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #5d87ff;
+            --secondary-color: #49beff;
+            --success-color: #13deb9;
+            --danger-color: #fa896b;
+            --warning-color: #ffae1f;
+            --info-color: #539bff;
+            --light-color: #f5f5f9;
+            --dark-color: #2a3547;
+            --border-color: #e5eaef;
+            --text-muted: #5a6a85;
+            --white: #ffffff;
+            --sidebar-width: 270px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h4 {
+            font-weight: 700;
+            margin: 0;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar.collapsed .sidebar-header h4 {
+            opacity: 0;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-radius: 0 25px 25px 0;
+            margin-right: 20px;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .sidebar-menu i {
+            width: 20px;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+
+        .sidebar.collapsed .sidebar-menu a span {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .header .d-flex {
+            align-items: center;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        .header-title {
+            font-weight: 600;
+            margin: 0;
+            color: var(--dark-color);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .theme-toggle {
+            background: var(--light-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Dashboard Cards */
+        .dashboard-container {
+            padding: 30px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 3px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-card .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card.primary .card-icon {
+            background: rgba(93, 135, 255, 0.1);
+            color: var(--primary-color);
+        }
+
+        .stat-card.success .card-icon {
+            background: rgba(19, 222, 185, 0.1);
+            color: var(--success-color);
+        }
+
+        .stat-card.danger .card-icon {
+            background: rgba(250, 137, 107, 0.1);
+            color: var(--danger-color);
+        }
+
+        .stat-card.warning .card-icon {
+            background: rgba(255, 174, 31, 0.1);
+            color: var(--warning-color);
+        }
+
+        .stat-card h3 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--dark-color);
+        }
+
+        .stat-card p {
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .stat-card .badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            margin-top: 10px;
+        }
+
+        /* Chart Cards */
+        .chart-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 3px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .chart-card h5 {
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        /* Transaction Table */
+        .transaction-table {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 3px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            background: var(--light-color);
+            padding: 15px;
+        }
+
+        .table td {
+            padding: 15px;
+            vertical-align: middle;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .risk-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .risk-badge.high {
+            background: rgba(250, 137, 107, 0.1);
+            color: var(--danger-color);
+        }
+
+        .risk-badge.medium {
+            background: rgba(255, 174, 31, 0.1);
+            color: var(--warning-color);
+        }
+
+        .risk-badge.low {
+            background: rgba(19, 222, 185, 0.1);
+            color: var(--success-color);
+        }
+
+        /* Upload Modal */
+        .upload-modal {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(93, 135, 255, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(93, 135, 255, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        /* AI Assistant */
+        .ai-assistant {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(93, 135, 255, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .ai-assistant:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(93, 135, 255, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .sidebar-header h4 {
+                opacity: 0;
+            }
+        }
+
+        /* Dark Theme */
+        .dark-theme {
+            --light-color: #1c1f26;
+            --white: #2a3547;
+            --dark-color: #ffffff;
+            --border-color: #3a4553;
+            --text-muted: #a6b0cf;
+        }
+
+        .dark-theme body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4><i class="fas fa-shield-alt"></i> FraudGuard Pro</h4>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="active"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+            <li><a href="#"><i class="fas fa-upload"></i> <span>Upload Data</span></a></li>
+            <li><a href="#"><i class="fas fa-chart-line"></i> <span>Analytics</span></a></li>
+            <li><a href="#"><i class="fas fa-exclamation-triangle"></i> <span>Alerts</span></a></li>
+            <li><a href="#"><i class="fas fa-history"></i> <span>Transaction History</span></a></li>
+            <li><a href="#"><i class="fas fa-cogs"></i> <span>Settings</span></a></li>
+            <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help</span></a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Header -->
+        <header class="header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h5 class="header-title">Fraud Detection Dashboard</h5>
+                </div>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> Admin
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle"></i> Profile</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-cogs"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-container">
+            <!-- Stats Row -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card primary">
+                        <div class="card-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h3>12,847</h3>
+                        <p>Total Transactions</p>
+                        <span class="badge bg-success">+12% from last month</span>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card danger">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h3>156</h3>
+                        <p>Flagged Transactions</p>
+                        <span class="badge bg-danger">+3% from last month</span>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card success">
+                        <div class="card-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>98.7%</h3>
+                        <p>Detection Accuracy</p>
+                        <span class="badge bg-success">+0.2% from last month</span>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="stat-card warning">
+                        <div class="card-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>47ms</h3>
+                        <p>Avg Response Time</p>
+                        <span class="badge bg-success">-5ms from last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row mb-4">
+                <div class="col-xl-8">
+                    <div class="chart-card">
+                        <h5><i class="fas fa-chart-line"></i> Fraud Detection Trends</h5>
+                        <div id="fraudTrendsChart"></div>
+                    </div>
+                </div>
+                <div class="col-xl-4">
+                    <div class="chart-card">
+                        <h5><i class="fas fa-chart-pie"></i> Risk Distribution</h5>
+                        <div id="riskDistributionChart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="transaction-table">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5><i class="fas fa-list"></i> Recent Transactions</h5>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                                <i class="fas fa-upload"></i> Upload Data
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Transaction ID</th>
+                                        <th>Amount</th>
+                                        <th>Merchant</th>
+                                        <th>Risk Score</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionTableBody">
+                                    <tr>
+                                        <td>#TXN001</td>
+                                        <td>$2,450.00</td>
+                                        <td>Tech Store Inc</td>
+                                        <td><span class="risk-badge high">High (85%)</span></td>
+                                        <td><span class="badge bg-danger">Flagged</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#TXN002</td>
+                                        <td>$89.99</td>
+                                        <td>Coffee Shop</td>
+                                        <td><span class="risk-badge low">Low (15%)</span></td>
+                                        <td><span class="badge bg-success">Approved</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>#TXN003</td>
+                                        <td>$567.20</td>
+                                        <td>Online Retailer</td>
+                                        <td><span class="risk-badge medium">Medium (45%)</span></td>
+                                        <td><span class="badge bg-warning">Pending</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Transaction Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--primary-color);"></i>
+                        <h6>Drop your CSV file here or click to browse</h6>
+                        <p class="text-muted">Supports CSV files up to 10MB</p>
+                        <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                    </div>
+                    <div class="mt-3" id="uploadProgress" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p class="text-muted mt-2">Processing transactions...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="uploadBtn">Upload & Analyze</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant -->
+    <div class="ai-assistant" id="aiAssistant">
+        <i class="fas fa-robot"></i>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Sidebar Toggle
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        });
+
+        // Theme Toggle
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            document.body.classList.toggle('dark-theme');
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        });
+
+        // Initialize Charts
+        function initializeCharts() {
+            // Fraud Trends Chart
+            const fraudTrendsOptions = {
+                series: [{
+                    name: 'Total Transactions',
+                    data: [3100, 4000, 2800, 5100, 4200, 3500, 4800, 5200, 3900, 4600, 5800, 6200]
+                }, {
+                    name: 'Flagged Transactions',
+                    data: [50, 80, 45, 95, 75, 60, 85, 90, 70, 80, 100, 110]
+                }],
+                chart: {
+                    height: 350,
+                    type: 'area',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#5d87ff', '#fa896b'],
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.3
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 2
+                },
+                xaxis: {
+                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                },
+                grid: {
+                    borderColor: '#e5eaef'
+                }
+            };
+
+            const fraudTrendsChart = new ApexCharts(document.querySelector("#fraudTrendsChart"), fraudTrendsOptions);
+            fraudTrendsChart.render();
+
+            // Risk Distribution Chart
+            const riskDistributionOptions = {
+                series: [65, 25, 10],
+                chart: {
+                    type: 'donut',
+                    height: 300
+                },
+                colors: ['#13deb9', '#ffae1f', '#fa896b'],
+                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                legend: {
+                    position: 'bottom'
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '70%'
+                        }
+                    }
+                }
+            };
+
+            const riskDistributionChart = new ApexCharts(document.querySelector("#riskDistributionChart"), riskDistributionOptions);
+            riskDistributionChart.render();
+        }
+
+        // File Upload Handling
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadProgress = document.getElementById('uploadProgress');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (file && file.type === 'text/csv') {
+                uploadBtn.textContent = `Upload ${file.name}`;
+                uploadBtn.disabled = false;
+            }
+        }
+
+        uploadBtn.addEventListener('click', () => {
+            uploadProgress.style.display = 'block';
+            const progressBar = uploadProgress.querySelector('.progress-bar');
+            
+            // Simulate upload progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        uploadProgress.style.display = 'none';
+                        bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                        alert('Transactions analyzed successfully!');
+                    }, 1000);
+                }
+            }, 200);
+        });
+
+        // AI Assistant
+        document.getElementById('aiAssistant').addEventListener('click', function() {
+            alert('AI Assistant feature coming soon! This will provide intelligent insights about your fraud detection patterns.');
+        });
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+        });
+    </script>
+</body>
+</html>
