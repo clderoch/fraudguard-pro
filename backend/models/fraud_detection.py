@@ -75,7 +75,7 @@ class SimpleFraudDetectionModel:
         
         customer_state = str(row.get('customer_state', '')).strip().upper()
         customer_zip = str(row.get('customer_zip_code', '')).strip()
-        customer_ip = str(row.get('customer_ip_address', '')).strip()
+        customer_ip = str(row.get('customer_ip_address', row.get('ip_address', ''))).strip()
         customer_city = str(row.get('customer_city', '')).strip()
         
         # Check ZIP code to state mismatch
@@ -132,7 +132,9 @@ class SimpleFraudDetectionModel:
                 current_time = pd.to_datetime(transaction_time)
                 for _, tx in customer_transactions.iterrows():
                     try:
-                        tx_time = pd.to_datetime(tx['transaction_time'])
+                        # Handle different column names for transaction time
+                        tx_time_val = tx.get('transaction_time', tx.get('time', ''))
+                        tx_time = pd.to_datetime(tx_time_val)
                         if (current_time - tx_time).total_seconds() <= 3600:
                             recent_transactions += 1
                     except:
@@ -214,14 +216,20 @@ class SimpleFraudDetectionModel:
         
         amount = row.get('amount', 0)
         customer_id = row.get('customer_id', '')
-        merchant_category = str(row.get('merchant_category', '')).lower()
+        merchant_category = str(row.get('merchant_category', row.get('merchant_category_code', ''))).lower()
         
         if customer_id and merchant_category:
             customer_history = df[df['customer_id'] == customer_id].iloc[:current_index]
-            if len(customer_history) > 0 and 'merchant_category' in df.columns:
-                prev_categories = customer_history['merchant_category'].unique()
+            if len(customer_history) > 0:
+                # Check if merchant_category exists in the dataframe
+                if 'merchant_category' in df.columns:
+                    prev_categories = customer_history['merchant_category'].unique()
+                elif 'merchant_category_code' in df.columns:
+                    prev_categories = customer_history['merchant_category_code'].unique()
+                else:
+                    prev_categories = []
                 
-                if len(customer_history) >= 3 and merchant_category not in [cat.lower() for cat in prev_categories]:
+                if len(customer_history) >= 3 and len(prev_categories) > 0 and merchant_category not in [str(cat).lower() for cat in prev_categories]:
                     anomalies.append("New merchant category for returning customer")
                     score_increase += 20
         
@@ -242,8 +250,9 @@ class SimpleFraudDetectionModel:
         anomalies = []
         score_increase = 0
         
-        transaction_time = str(row.get('transaction_time', ''))
-        transaction_date = str(row.get('transaction_date', ''))
+        # Handle different column names for transaction time and date
+        transaction_time = str(row.get('transaction_time', row.get('time', '')))
+        transaction_date = str(row.get('transaction_date', row.get('date', '')))
         
         if transaction_time and ':' in transaction_time:
             try:
@@ -266,7 +275,7 @@ class SimpleFraudDetectionModel:
                     except:
                         pass
                 
-                merchant_category = str(row.get('merchant_category', '')).lower()
+                merchant_category = str(row.get('merchant_category', row.get('merchant_category_code', ''))).lower()
                 if any(term in merchant_category for term in ['business', 'office', 'professional']):
                     if hour < 8 or hour > 18:
                         anomalies.append("B2B transaction outside business hours")
@@ -314,7 +323,7 @@ class SimpleFraudDetectionModel:
     
     def get_industry_type(self, row):
         """Determine industry type from merchant category or transaction details"""
-        merchant_category = str(row.get('merchant_category', '')).lower()
+        merchant_category = str(row.get('merchant_category', row.get('merchant_category_code', ''))).lower()
         merchant_name = str(row.get('merchant_name', '')).lower()
         
         if any(term in merchant_category for term in ['gaming', 'mobile', 'app', 'game']):
@@ -346,9 +355,20 @@ class SimpleFraudDetectionModel:
             # Ensure amount is numeric
             df_analyzed['amount'] = pd.to_numeric(df_analyzed['amount'], errors='coerce').fillna(0)
             
-            # Convert time columns for analysis
-            df_analyzed['transaction_time'] = df_analyzed['transaction_time'].astype(str)
-            df_analyzed['transaction_date'] = df_analyzed['transaction_date'].astype(str)
+            # Convert time columns for analysis - handle different column names
+            if 'transaction_time' in df_analyzed.columns:
+                df_analyzed['transaction_time'] = df_analyzed['transaction_time'].astype(str)
+            elif 'time' in df_analyzed.columns:
+                df_analyzed['transaction_time'] = df_analyzed['time'].astype(str)
+            else:
+                df_analyzed['transaction_time'] = '12:00:00'
+            
+            if 'transaction_date' in df_analyzed.columns:
+                df_analyzed['transaction_date'] = df_analyzed['transaction_date'].astype(str)
+            elif 'date' in df_analyzed.columns:
+                df_analyzed['transaction_date'] = df_analyzed['date'].astype(str)
+            else:
+                df_analyzed['transaction_date'] = '2025-01-01'
             
             # Enhanced risk scoring with industry-specific rules
             risk_scores = []
@@ -408,23 +428,22 @@ class SimpleFraudDetectionModel:
                         score += 5
                 
                 # Time-based risk with industry context
-                if 'transaction_time' in df_analyzed.columns:
-                    time_str = str(row.get('transaction_time', '12:00:00'))
-                    try:
-                        if ':' in time_str:
-                            hour = int(time_str.split(':')[0])
-                            
-                            pattern = self.industry_patterns.get(industry_type, {})
-                            peak_hours = pattern.get('peak_hours', [9, 10, 11, 14, 15, 16])
-                            
-                            if hour not in peak_hours:
-                                if hour >= 22 or hour <= 6:
-                                    score += 25
-                                    current_anomalies.append("Late night/early morning transaction")
-                                else:
-                                    score += 10
-                    except:
-                        pass
+                time_str = str(row.get('transaction_time', row.get('time', '12:00:00')))
+                try:
+                    if ':' in time_str:
+                        hour = int(time_str.split(':')[0])
+                        
+                        pattern = self.industry_patterns.get(industry_type, {})
+                        peak_hours = pattern.get('peak_hours', [9, 10, 11, 14, 15, 16])
+                        
+                        if hour not in peak_hours:
+                            if hour >= 22 or hour <= 6:
+                                score += 25
+                                current_anomalies.append("Late night/early morning transaction")
+                            else:
+                                score += 10
+                except:
+                    pass
                 
                 # Customer pattern risk (reduce random scoring)
                 if 'customer_id' in df_analyzed.columns:
@@ -438,13 +457,14 @@ class SimpleFraudDetectionModel:
                             current_anomalies.append("Multiple high-value transactions from same customer")
                 
                 # Core anomaly checks (only run if relevant columns exist)
-                if any(col in df_analyzed.columns for col in ['customer_state', 'customer_zip_code', 'customer_ip_address']):
+                if any(col in df_analyzed.columns for col in ['customer_state', 'customer_zip_code', 'customer_ip_address', 'ip_address']):
                     geo_anomalies, geo_score = self.check_geographical_anomalies(row)
                     score += geo_score
                     current_anomalies.extend(geo_anomalies)
                 
                 velocity_anomalies, velocity_score = self.check_velocity_anomalies(
-                    df_analyzed, idx, row.get('customer_id', ''), amount, row.get('transaction_time', '')
+                    df_analyzed, idx, row.get('customer_id', ''), amount, 
+                    row.get('transaction_time', row.get('time', ''))
                 )
                 score += velocity_score
                 current_anomalies.extend(velocity_anomalies)
@@ -512,22 +532,20 @@ class SimpleFraudDetectionModel:
             df_analyzed['anomaly_flags'] = anomaly_flags
             df_analyzed['industry_type'] = industry_types
             
-            # Add hour for visualization
-            if 'transaction_time' in df_analyzed.columns:
-                hours = []
-                for time_val in df_analyzed['transaction_time']:
-                    try:
-                        time_str = str(time_val)
-                        if ':' in time_str:
-                            hour = int(time_str.split(':')[0])
-                            hours.append(hour)
-                        else:
-                            hours.append(12)
-                    except:
+            # Add hour for visualization - handle different column names
+            hours = []
+            for _, row in df_analyzed.iterrows():
+                try:
+                    time_val = row.get('transaction_time', row.get('time', '12:00:00'))
+                    time_str = str(time_val)
+                    if ':' in time_str:
+                        hour = int(time_str.split(':')[0])
+                        hours.append(hour)
+                    else:
                         hours.append(12)
-                df_analyzed['hour'] = hours
-            else:
-                df_analyzed['hour'] = 12
+                except:
+                    hours.append(12)
+            df_analyzed['hour'] = hours
             
             return df_analyzed
             
