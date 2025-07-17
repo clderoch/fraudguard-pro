@@ -1,4 +1,0 @@
-transaction_id,amount,transaction_date,transaction_time,customer_id,merchant_name
-TXN001,250.00,2024-01-15,14:30:00,CUST001,Coffee Shop
-TXN002,89.99,2024-01-15,15:45:00,CUST002,Online Store
-TXN003,1250.00,2024-01-15,16:20:00,CUST003,Electronics Store

@@ -1,4 +1,0 @@
-transaction_id,amount,transaction_date,transaction_time,customer_id,merchant_name
-TXN001,12500.00,2024-01-15,14:30:00,CUST001,High Value Store
-TXN002,25989.50,2024-01-15,15:45:00,CUST002,Luxury Retailer  
-TXN003,1234567.89,2024-01-15,16:20:00,CUST003,Major Purchase

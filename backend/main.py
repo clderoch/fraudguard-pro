@@ -435,7 +435,16 @@ async def analyze_transactions(file: UploadFile = File(...)):
                 "total_processed_rate": 100.0,  # All transactions processed successfully
                 "needs_attention_rate": round((needs_attention / total_transactions) * 100, 1) if total_transactions > 0 else 0.0,
                 "safe_payment_rate": round((safe_payments / total_transactions) * 100, 1) if total_transactions > 0 else 0.0,
-                "watch_closely_rate": round((watch_closely / total_transactions) * 100, 1) if total_transactions > 0 else 0.0
+                "watch_closely_rate": round((watch_closely / total_transactions) * 100, 1) if total_transactions > 0 else 0.0,
+                # Enhanced safety score metrics
+                "average_risk_score": float(df_analyzed['risk_score'].mean()) if len(df_analyzed) > 0 else 0.0,
+                "max_risk_score": float(df_analyzed['risk_score'].max()) if len(df_analyzed) > 0 else 0.0,
+                "min_risk_score": float(df_analyzed['risk_score'].min()) if len(df_analyzed) > 0 else 0.0,
+                "high_risk_count": int(len(df_analyzed[df_analyzed['risk_score'] > 70])) if len(df_analyzed) > 0 else 0,
+                "medium_risk_count": int(len(df_analyzed[(df_analyzed['risk_score'] > 40) & (df_analyzed['risk_score'] <= 70)])) if len(df_analyzed) > 0 else 0,
+                "low_risk_count": int(len(df_analyzed[df_analyzed['risk_score'] <= 40])) if len(df_analyzed) > 0 else 0,
+                "total_transaction_amount": float(df_analyzed['amount'].sum()) if len(df_analyzed) > 0 else 0.0,
+                "average_transaction_amount": float(df_analyzed['amount'].mean()) if len(df_analyzed) > 0 else 0.0
             },
             "chart_data": chart_data,
             "recent_transactions": recent_transactions,

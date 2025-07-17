@@ -613,6 +613,182 @@
             position: relative;
         }
 
+        /* Safety Score Enhancements */
+        .safety-score-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .safety-score-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .safety-score-info {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .safety-score-breakdown {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .safety-score-breakdown .d-flex {
+            padding: 2px 0;
+        }
+
+        /* Safety Score Guide */
+        .safety-score-guide {
+            background: rgba(248, 250, 252, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.8rem;
+        }
+
+        .score-ranges {
+            background: white;
+            border-radius: 6px;
+            padding: 8px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .score-range-item {
+            border-bottom: 1px solid #f8fafc;
+            padding: 3px 0;
+        }
+
+        .score-range-item:last-child {
+            border-bottom: none;
+        }
+
+        .score-color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .score-color-indicator.bg-success {
+            background-color: #13deb9 !important;
+        }
+
+        .score-color-indicator.bg-warning {
+            background-color: #ffae1f !important;
+        }
+
+        .score-color-indicator.bg-info {
+            background-color: #ff9f43 !important;
+        }
+
+        .score-color-indicator.bg-danger {
+            background-color: #fa896b !important;
+        }
+
+        /* Inline Score Reference Bar */
+        .score-reference-bar {
+            margin: 15px 0;
+        }
+
+        .score-bar-container {
+            position: relative;
+            height: 25px;
+            margin-bottom: 5px;
+        }
+
+        .score-bar {
+            display: flex;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+        }
+
+        .score-segment {
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .score-segment.score-danger {
+            background: linear-gradient(90deg, #fa896b 0%, #ff6b6b 100%);
+        }
+
+        .score-segment.score-fair {
+            background: linear-gradient(90deg, #ff9f43 0%, #ffa726 100%);
+        }
+
+        .score-segment.score-good {
+            background: linear-gradient(90deg, #ffae1f 0%, #ffc107 100%);
+        }
+
+        .score-segment.score-excellent {
+            background: linear-gradient(90deg, #13deb9 0%, #00d4aa 100%);
+        }
+
+        .score-indicator {
+            position: absolute;
+            top: -2px;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .score-pointer {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 8px solid #2a3547;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .score-pointer::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: -4px;
+            width: 8px;
+            height: 8px;
+            background: #2a3547;
+            border-radius: 50%;
+        }
+
+        .score-value {
+            display: block;
+            text-align: center;
+            font-weight: bold;
+            color: #2a3547;
+            margin-top: 2px;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1px 4px;
+            border-radius: 3px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .score-labels {
+            font-size: 0.7rem;
+            margin-top: 3px;
+        }
+
+        /* Pulse animation for critical scores */
+        .safety-score-critical {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
         /* Responsive improvements */
         @media (max-width: 992px) {
             .btn-group {
@@ -645,6 +821,31 @@
             
             .table-responsive {
                 font-size: 14px;
+            }
+            
+            /* Safety Score Mobile Adjustments */
+            .safety-score-guide {
+                font-size: 0.75rem;
+            }
+            
+            .score-reference-bar {
+                margin: 10px 0;
+            }
+            
+            .score-bar-container {
+                height: 20px;
+            }
+            
+            .score-bar {
+                height: 10px;
+            }
+            
+            .score-value {
+                font-size: 0.65rem;
+            }
+            
+            .score-labels {
+                font-size: 0.65rem;
             }
         }
     </style>
@@ -1009,16 +1210,91 @@
                                 <!-- Risk Score Meter -->
                                 <div class="row mb-4">
                                     <div class="col-md-6">
-                                        <div class="card h-100">
+                                        <div class="card h-100 safety-score-card">
                                             <div class="card-body text-center">
-                                                <h6 class="card-title">
-                                                    <i class="fas fa-tachometer-alt text-info me-2"></i>
-                                                    Overall Safety Score
-                                                </h6>
+                                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                                    <h6 class="card-title mb-0">
+                                                        <i class="fas fa-tachometer-alt text-info me-2"></i>
+                                                        Overall Safety Score
+                                                    </h6>
+                                                    <button class="btn btn-sm btn-outline-info" 
+                                                            data-bs-toggle="tooltip" 
+                                                            data-bs-placement="top" 
+                                                            title="Safety Score Calculation:
+• Base score from safe transaction percentage
+• Penalty for high-risk transactions (-5 points each, max -30)
+• Penalty for watch transactions (-2 points each, max -15)  
+• Penalty for money at risk (-2 points per $1000, max -20)
+• Final score ranges: 85-100 (Excellent), 70-84 (Good), 50-69 (Fair), 0-49 (Needs Attention)"
+                                                            data-bs-html="true">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </button>
+                                                </div>
                                                 <div id="safetyScoreMeter" style="height: 200px;"></div>
+                                                
+                                                <!-- Safety Score Reference Guide -->
+                                                <div class="safety-score-guide mt-3 mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <small class="text-muted fw-bold">Safety Score Guide:</small>
+                                                        <button class="btn btn-sm btn-outline-secondary" 
+                                                                data-bs-toggle="collapse" 
+                                                                data-bs-target="#scoreGuideDetails" 
+                                                                aria-expanded="false">
+                                                            <i class="fas fa-chevron-down"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="collapse" id="scoreGuideDetails">
+                                                        <div class="score-ranges">
+                                                            <div class="score-range-item d-flex justify-content-between align-items-center py-1">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="score-color-indicator bg-success me-2"></div>
+                                                                    <small class="fw-medium">85-100</small>
+                                                                </div>
+                                                                <small class="text-success">Excellent</small>
+                                                            </div>
+                                                            <div class="score-range-item d-flex justify-content-between align-items-center py-1">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="score-color-indicator bg-warning me-2"></div>
+                                                                    <small class="fw-medium">70-84</small>
+                                                                </div>
+                                                                <small class="text-warning">Good</small>
+                                                            </div>
+                                                            <div class="score-range-item d-flex justify-content-between align-items-center py-1">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="score-color-indicator bg-info me-2"></div>
+                                                                    <small class="fw-medium">50-69</small>
+                                                                </div>
+                                                                <small class="text-info">Fair</small>
+                                                            </div>
+                                                            <div class="score-range-item d-flex justify-content-between align-items-center py-1">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="score-color-indicator bg-danger me-2"></div>
+                                                                    <small class="fw-medium">0-49</small>
+                                                                </div>
+                                                                <small class="text-danger">Needs Attention</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
                                                 <div id="safetyScoreText" class="mt-2">
-                                                    <h4 class="text-success">Excellent</h4>
-                                                    <p class="text-muted">Your transactions look very safe</p>
+                                                    <div class="d-flex align-items-center justify-content-center mb-2">
+                                                        <i class="fas fa-shield-alt me-2 text-success"></i>
+                                                        <h4 class="mb-0 text-success">Excellent</h4>
+                                                    </div>
+                                                    <p class="text-muted mb-1">Your payment security is outstanding</p>
+                                                    <div class="safety-score-info">
+                                                        <div class="safety-score-breakdown">
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <small class="text-muted">Safe Transactions:</small>
+                                                                <small class="fw-bold text-success">0/0</small>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between align-items-center">
+                                                                <small class="text-muted">Safety Rate:</small>
+                                                                <small class="fw-bold">100%</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1499,7 +1775,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeNavigation();
             setupMainUploadArea();
+            initializeTooltips();
         });
+
+        // Initialize tooltips
+        function initializeTooltips() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+        }
 
         // Setup main upload area functionality
         function setupMainUploadArea() {
@@ -2874,37 +3161,85 @@
         function updateSafetyScoreMeter(summary) {
             const total = summary.total_transactions || 1;
             const safe = summary.safe_payments || 0;
+            const watch = summary.watch_closely || 0;
+            const risk = summary.needs_attention || 0;
+            const moneyAtRisk = summary.money_at_risk || 0;
+            
+            // Enhanced safety score calculation
+            // Base score from transaction safety (weighted by importance)
             const safetyPercentage = Math.round((safe / total) * 100);
             
-            // Calculate a safety score out of 100 (but display as a score, not percentage)
-            const safetyScore = safetyPercentage;
+            // Adjusted score based on risk factors
+            let adjustedScore = safetyPercentage;
+            
+            // Penalty for high-risk transactions (more severe penalty)
+            const riskPenalty = Math.min(risk * 5, 30); // Max 30 point penalty
+            adjustedScore -= riskPenalty;
+            
+            // Penalty for watch transactions (moderate penalty)
+            const watchPenalty = Math.min(watch * 2, 15); // Max 15 point penalty
+            adjustedScore -= watchPenalty;
+            
+            // Penalty for high money at risk (financial impact)
+            const moneyPenalty = Math.min(Math.floor(moneyAtRisk / 1000) * 2, 20); // Max 20 point penalty
+            adjustedScore -= moneyPenalty;
+            
+            // Ensure score is within 0-100 range
+            const finalScore = Math.max(0, Math.min(100, adjustedScore));
+            
+            // Determine color based on final score
+            let scoreColor = '#fa896b'; // Red (danger)
+            if (finalScore >= 85) {
+                scoreColor = '#13deb9'; // Green (success)
+            } else if (finalScore >= 70) {
+                scoreColor = '#ffae1f'; // Yellow (warning)
+            } else if (finalScore >= 50) {
+                scoreColor = '#ff9f43'; // Orange (caution)
+            }
             
             const options = {
-                series: [safetyPercentage],
+                series: [finalScore],
                 chart: {
                     height: 200,
                     type: 'radialBar',
                 },
-                colors: [safetyPercentage >= 90 ? '#13deb9' : safetyPercentage >= 70 ? '#ffae1f' : '#fa896b'],
+                colors: [scoreColor],
                 plotOptions: {
                     radialBar: {
                         hollow: {
                             size: '60%',
                         },
+                        track: {
+                            background: '#f1f5f9',
+                            strokeWidth: '100%',
+                            margin: 5,
+                        },
                         dataLabels: {
                             show: true,
                             name: {
-                                show: false,
+                                show: true,
+                                fontSize: '14px',
+                                fontWeight: 500,
+                                color: '#64748b',
+                                offsetY: 25,
+                                formatter: function() {
+                                    return 'Safety Score';
+                                }
                             },
                             value: {
-                                fontSize: '24px',
+                                fontSize: '28px',
                                 fontWeight: 'bold',
+                                color: scoreColor,
+                                offsetY: -10,
                                 formatter: function (val) {
-                                    return Math.round(val)
+                                    return Math.round(val);
                                 }
                             }
                         }
                     }
+                },
+                stroke: {
+                    lineCap: 'round'
                 },
                 labels: ['Safety Score'],
             };
@@ -2916,28 +3251,104 @@
                 chart.render();
             }
             
-            // Update safety text
+            // Update safety text with enhanced messaging
             const textElement = document.querySelector("#safetyScoreText");
             if (textElement) {
-                let status, message, colorClass;
-                if (safetyScore >= 90) {
+                let status, message, colorClass, icon;
+                
+                if (finalScore >= 85) {
                     status = "Excellent";
-                    message = "Your transactions look very safe";
+                    message = "Your payment security is outstanding";
                     colorClass = "text-success";
-                } else if (safetyScore >= 70) {
+                    icon = "fas fa-shield-alt";
+                } else if (finalScore >= 70) {
                     status = "Good";
-                    message = "Most transactions are safe, but review flagged ones";
+                    message = "Generally secure with minor concerns";
                     colorClass = "text-warning";
+                    icon = "fas fa-shield-halved";
+                } else if (finalScore >= 50) {
+                    status = "Fair";
+                    message = "Some security issues need attention";
+                    colorClass = "text-warning";
+                    icon = "fas fa-exclamation-triangle";
                 } else {
                     status = "Needs Attention";
-                    message = "Several transactions need your review";
+                    message = "Multiple security concerns detected";
                     colorClass = "text-danger";
+                    icon = "fas fa-shield-virus";
                 }
                 
+                // Add detailed breakdown
+                let breakdown = [];
+                if (risk > 0) {
+                    breakdown.push(`${risk} high-risk transactions`);
+                }
+                if (watch > 0) {
+                    breakdown.push(`${watch} need monitoring`);
+                }
+                if (moneyAtRisk > 0) {
+                    breakdown.push(`$${moneyAtRisk.toLocaleString()} at risk`);
+                }
+                
+                const breakdownText = breakdown.length > 0 ? 
+                    `<small class="text-muted d-block mt-1">${breakdown.join(', ')}</small>` : 
+                    '';
+                
+                // Add critical animation class for very low scores
+                const criticalClass = finalScore < 30 ? 'safety-score-critical' : '';
+                
                 textElement.innerHTML = `
-                    <h4 class="${colorClass}">${status}</h4>
-                    <p class="text-muted">${message}</p>
+                    <div class="d-flex align-items-center justify-content-center mb-2 ${criticalClass}">
+                        <i class="${icon} me-2 ${colorClass}"></i>
+                        <h4 class="mb-0 ${colorClass}">${status}</h4>
+                    </div>
+                    <p class="text-muted mb-1">${message}</p>
+                    ${breakdownText}
+                    
+                    <!-- Inline Score Reference Bar -->
+                    <div class="score-reference-bar mb-3">
+                        <div class="score-bar-container">
+                            <div class="score-bar">
+                                <div class="score-segment score-danger" style="width: 49%"></div>
+                                <div class="score-segment score-fair" style="width: 20%"></div>
+                                <div class="score-segment score-good" style="width: 15%"></div>
+                                <div class="score-segment score-excellent" style="width: 16%"></div>
+                            </div>
+                            <div class="score-indicator" style="left: ${finalScore}%">
+                                <div class="score-pointer"></div>
+                                <small class="score-value">${Math.round(finalScore)}</small>
+                            </div>
+                        </div>
+                        <div class="score-labels d-flex justify-content-between mt-1">
+                            <small class="text-danger">0</small>
+                            <small class="text-warning">50</small>
+                            <small class="text-info">70</small>
+                            <small class="text-success">85</small>
+                            <small class="text-success">100</small>
+                        </div>
+                    </div>
+                    
+                    <div class="safety-score-info">
+                        <div class="safety-score-breakdown">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Safe Transactions:</small>
+                                <small class="fw-bold text-success">${safe}/${total}</small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Safety Rate:</small>
+                                <small class="fw-bold">${safetyPercentage}%</small>
+                            </div>
+                        </div>
+                    </div>
                 `;
+                
+                // Initialize tooltips
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+                    tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl);
+                    });
+                }
             }
         }
         
